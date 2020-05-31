@@ -1,0 +1,44 @@
+{
+  "name": "aws-local-dev",
+  "version": "0.1.0",
+  "bin": {
+    "aws-local-dev": "bin/aws-local-dev.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk",
+    "synth-local": "tsc && cdk synth --no-staging > template.yaml"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/therightstuff/aws-local-dev.git"
+  },
+  "author": "therightstuff",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/therightstuff/aws-local-dev/issues"
+  },
+  "homepage": "https://github.com/therightstuff/aws-local-dev#readme",
+  "devDependencies": {
+    "@aws-cdk/assert": "1.42.0",
+    "@types/jest": "^25.2.1",
+    "@types/node": "10.17.5",
+    "aws-cdk": "1.42.0",
+    "aws-sdk": "^2.686.0",
+    "jest": "^25.5.0",
+    "js-yaml": "^3.14.0",
+    "prompt": "^1.0.0",
+    "ts-jest": "^25.3.1",
+    "ts-node": "^8.1.0",
+    "typescript": "~3.7.2"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-apigateway": "^1.42.0",
+    "@aws-cdk/aws-dynamodb": "^1.42.0",
+    "@aws-cdk/aws-lambda": "^1.42.0",
+    "@aws-cdk/core": "1.42.0",
+    "source-map-support": "^0.5.16"
+  }
+}

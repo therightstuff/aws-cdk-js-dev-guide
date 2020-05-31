@@ -1,0 +1,16 @@
+*.js
+!scripts/*.js
+!jest.config.js
+*.d.ts
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+# synthesized output
+template.yaml
+
+# Parcel build directories
+.cache
+.build

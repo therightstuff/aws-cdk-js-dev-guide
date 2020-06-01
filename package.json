@@ -7,9 +7,10 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "jest",
+    "test-units": "jest",
     "cdk": "cdk",
-    "synth-local": "tsc && cdk synth --no-staging > template.yaml"
+    "synth-local": "cdk synth --no-staging > template.yaml",
+    "test-local": "node scripts/run.js"
   },
   "repository": {
     "type": "git",

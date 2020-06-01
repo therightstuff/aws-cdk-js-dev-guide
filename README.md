@@ -2,8 +2,6 @@
 
 Based on [this excellent tutorial](https://sanderknape.com/2019/05/building-serverless-applications-aws-cdk/), this is a work in progress - please contribute if you can!
 
-TODO Add build script should add versions eg `cdk --version` and `sam --version` somewhere for tracking (this README?)
-
 ## Tooling setup for local AWS development
 
 ### Preamble
@@ -16,6 +14,10 @@ It is worth going through the following guides to familiarize yourself with the 
 - follow cdk guide
   - get 12 digit account id from My Account in console
   - https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html#hello_world_tutorial
+
+### Tool Versions
+
+The two main AWS packages in use, CDK and SAM, tend to be updated frequently with breaking changes. Prior to committing changes, please ensure that you are using the latest versions and that everything is building and running correctly.
 
 ### CDK Initialization
 
@@ -41,6 +43,8 @@ The stack definition is located in the `/lib` folder, this is where the stack is
 TODO use `envs.json` to limit deployment regions?
 
 ## Local testing
+
+To compile typescript, synthesize cdk, and provide an interface for easily setting up and tearing down local components and invoking lambda functions against them, run `npm run test-local`.
 
 ### DynamoDB
 

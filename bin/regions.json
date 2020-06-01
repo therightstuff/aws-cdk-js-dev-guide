@@ -1,0 +1,10 @@
+{
+    "eu": {
+        "region": "eu-west-1",
+        "account": "XXXXXXXXXXXX"
+    },
+    "za": {
+        "region": "af-south-1",
+        "account": "XXXXXXXXXXXX"
+    }
+}

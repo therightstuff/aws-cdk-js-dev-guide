@@ -40,7 +40,11 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
 The stack definition is located in the `/lib` folder, this is where the stack is configured for deployment.
 
-TODO use `envs.json` to limit deployment regions?
+By default, CDK deploys stacks that are [environment-agnostic](https://docs.aws.amazon.com/cdk/latest/guide/environments.html). To deploy to specific regions, update the `bin/regions.json` file with the desired region and account numbers.
+
+If this file does not contain any region specifications, the stack will be deployed as environment-agnostic.
+
+Region specifications will be ignored for local testing.
 
 ## Local testing
 

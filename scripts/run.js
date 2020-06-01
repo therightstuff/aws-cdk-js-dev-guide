@@ -20,14 +20,14 @@ cp.execSync('npm run build', {
     stdio: 'inherit'
 });
 
-// this include must be performed after the typescript has been compiled
-const AwsLocalDevStack = require('../lib/aws-local-dev-stack').AwsLocalDevStack;
-let stack = new AwsLocalDevStack(app, 'AwsLocalDevStack');
-
 console.log('using CDK to synthesize `template.yaml`...');
-cp.execSync('npm run synth-local', {
+cp.execSync('AWS_LOCAL_DEV=true npm run synth-local', {
     stdio: 'inherit'
 });
+
+// this include must only be performed after the typescript has been compiled
+const AwsLocalDevStack = require('../lib/aws-local-dev-stack').AwsLocalDevStack;
+let stack = new AwsLocalDevStack(app, 'AwsLocalDevStack');
 
 let commandList = [ '' ];
 

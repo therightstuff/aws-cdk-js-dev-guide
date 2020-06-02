@@ -1,18 +1,9 @@
 const aws = require(`aws-sdk`);
-aws.config.update({
-    region: 'eu-west-2', // default for localhost
-    endpoint: "http://localhost:8000",
-    accessKeyId: 'xxxx',
-    secretAccessKey: 'xxxx'
-});
 const cp = require("child_process");
-const dynamodb = new aws.DynamoDB();
 const fs = require("fs");
 const yaml = require('js-yaml')
 
-const ddbDockerName = 'aws-local-dev_ddb';
-let ddbDocker = null;
-let tables = {};
+let functions = {};
 
 function stripUnusedChars(str) {
     str = str.replace("-", "");
@@ -22,31 +13,29 @@ function stripUnusedChars(str) {
 
 const exportable = {
     commandList: [
-        'dynamodb:',
-        'ddb start: start dynamodb docker instance',
-        'ddb stop: stop dynamodb docker instance',
-        'ddb create tables: create database tables defined by cdk output',
-        'ddb delete tables: delete database tables'
+        'lambda:'
     ],
     init: (stack) => {
-        console.log("retrieving table names...");
+        console.log("retrieving function names");
         for (let i in stack.node.children) {
             let child = stack.node.children[i];
-            if (child.table) {
-                tables[child.node._actualNode.id] = {};
+            if (child.functionName) {
+                functions[child.node._actualNode.id] = {};
             }
         }
 
-        console.log("retrieving table definitions...")
+        console.log(functions);
+
+        console.log("retrieving function definitions...")
         let template = yaml.safeLoadAll(fs.readFileSync('template.yaml'));
         for (let key in template[0].Resources) {
-            for (let tableName in tables) {
-                let strippedName = stripUnusedChars(tableName);
+            for (let functionName in functions) {
+                let strippedName = stripUnusedChars(functionName);
                 let strippedKey = key.substr(0, key.length - 8);
                 if (strippedKey == strippedName) {
-                    tables[tableName] = template[0].Resources[key];
-                    tables[tableName].Properties.TableName = key;
-                    delete tables[tableName].Properties.TimeToLiveSpecification;
+                    functions[functionName] = template[0].Resources[key];
+                    functions[functionName].Properties.FunctionName = key;
+
                 }
             }
         }

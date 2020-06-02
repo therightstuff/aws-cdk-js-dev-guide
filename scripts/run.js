@@ -31,9 +31,13 @@ let stack = new AwsLocalDevStack(app, 'AwsLocalDevStack');
 
 let commandList = [ '' ];
 
-dynamodb = require('./dynamodb');
+const dynamodb = require('./dynamodb');
 dynamodb.init(stack);
+// TODO map to prefix commandList values with ddb
 commandList.push.apply(commandList, dynamodb.commandList);
+
+const lambda = require('./lambda');
+lambda.init(stack);
 
 commandList.push.apply(commandList, [ 'exit / quit: end this program', '> ']);
 
@@ -43,8 +47,9 @@ function prompt() {
 }
 prompt();
 
-function promptHandler(answer) {
-    switch (answer){
+function promptHandler(command) {
+    // TODO switch on first token, if ddb then call dyamodb.run('everything after first token')
+    switch (command){
         case 'ddb start':
             dynamodb.startDockerProcess(prompt);
             break;

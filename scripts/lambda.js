@@ -12,11 +12,13 @@ function stripUnusedChars(str) {
 }
 
 const exportable = {
-    commandList: ['example'],
+    commandList: [],
     command: (command, next) => {
         next = next || (() => {});
         if (exportable.commandList.indexOf(command) > -1) {
             // TODO command will include name and sample request file if any
+            // name => functions[name].Properties.FunctionName
+            // lambda simple-function -> sam local invoke simplefunctionD9727239 --debug
         }
         console.log('NOT IMPLEMENTED');
         next();

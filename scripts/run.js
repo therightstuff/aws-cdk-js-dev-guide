@@ -64,12 +64,11 @@ function promptHandler(command) {
         process.exit(0);
     }
     // first token is the module, the rest of the command is to be handled by that module
-    commandKey = command.substr(0, command.indexOf(' '));
+    let arr = command.split(" ");
+    let commandKey = arr.splice(0, 1);
+    command = arr.join(" ");
     if (commandFunctions[commandKey]) {
-        commandFunctions[commandKey](
-            command.substr(command.indexOf(' ') + 1),
-            prompt
-        );
+        commandFunctions[commandKey](command, prompt);
     } else {
         console.error('invalid command');
         prompt();

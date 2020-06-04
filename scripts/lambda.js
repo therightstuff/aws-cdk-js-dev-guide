@@ -12,19 +12,25 @@ function stripUnusedChars(str) {
 }
 
 const exportable = {
-    commandList: [
-        'lambda:'
-    ],
+    commandList: ['example'],
+    command: (command, next) => {
+        next = next || (() => {});
+        if (exportable.commandList.indexOf(command) > -1) {
+            // TODO command will include name and sample request file if any
+        }
+        console.log('NOT IMPLEMENTED');
+        next();
+    },
     init: (stack) => {
         console.log("retrieving function names");
         for (let i in stack.node.children) {
             let child = stack.node.children[i];
             if (child.functionName) {
-                functions[child.node._actualNode.id] = {};
+                let key = child.node._actualNode.id;
+                functions[key] = {};
+                exportable.commandList.push(key);
             }
         }
-
-        console.log(functions);
 
         console.log("retrieving function definitions...")
         let template = yaml.safeLoadAll(fs.readFileSync('template.yaml'));
@@ -35,71 +41,11 @@ const exportable = {
                 if (strippedKey == strippedName) {
                     functions[functionName] = template[0].Resources[key];
                     functions[functionName].Properties.FunctionName = key;
-
+                    console.log(functions[functionName]);
                 }
             }
         }
-    }, // init
-    startDockerProcess: (prompt) => {
-        if (ddbDocker) {
-            console.error('dynamodb already running');
-            return prompt();
-        }
-        // Spin up a docker instance of the DynamoDB in a separate process
-        ddbDocker = cp.spawn('docker', ['run', '--name', ddbDockerName, '--rm', '-p', '8000:8000', 'amazon/dynamodb-local']);
-        ddbDocker.stdout.on('data', (data) => {
-            console.log(`ddb stdout: ${data}`);
-            prompt();
-        });
-
-        ddbDocker.stderr.on('data', (data) => {
-            console.error(`ddb stderr: ${data}`);
-            // try to remove the docker container before quitting
-            cp.execSync(`docker rm -f ${ddbDockerName}`);
-            process.exit(0);
-        });
-
-        ddbDocker.on('close', (code) => {
-            console.log(`ddb docker child process exited with code ${code}`);
-        });
-    },
-    stopDockerProcess: (prompt) => {
-        if (ddbDocker) {
-            cp.execSync(`docker rm -f ${ddbDockerName}`);
-            ddbDocker = null;
-        } else {
-            console.error('dynamodb not running');
-        }
-        prompt();
-    },
-    createTables: (prompt) => {
-        for (let key in tables) {
-            let table = tables[key];
-
-            dynamodb.createTable(table.Properties, function(err, data) {
-                if (err) {
-                    console.error(`Unable to create table ${key}. Error JSON:`, JSON.stringify(err, null, 2));
-                } else {
-                    console.log(`Created table ${key}. Table description JSON:`, JSON.stringify(data, null, 2));
-                }
-                prompt();
-            });
-        }
-    },
-    deleteTables: (prompt) => {
-        for (let key in tables) {
-            let table = tables[key];
-
-            dynamodb.deleteTable({ TableName: table.Properties.TableName }, function(err, data) {
-                if (err) {
-                    console.error(`Unable to delete table ${key}. Error JSON:`, JSON.stringify(err, null, 2));
-                } else {
-                    console.log(`Deleted table ${key}. Table description JSON:`, JSON.stringify(data, null, 2));
-                }
-                prompt();
-            });
-        }
-    }
+    } // init
 };
 
 module.exports = exportable;

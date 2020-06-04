@@ -29,46 +29,49 @@ cp.execSync('AWS_LOCAL_DEV=true npm run synth-local', {
 const AwsLocalDevStack = require('../lib/aws-local-dev-stack').AwsLocalDevStack;
 let stack = new AwsLocalDevStack(app, 'AwsLocalDevStack');
 
+let modules = {};
 let commandList = [ '' ];
+let commandFunctions = {};
 
-const dynamodb = require('./dynamodb');
-dynamodb.init(stack);
-// TODO map to prefix commandList values with ddb
-commandList.push.apply(commandList, dynamodb.commandList);
+function includeModule(path, key, label) {
+    label = label || key;
+    modules[key] = require(path);
+    modules[key].init(stack);
+    commandList.push(`${label}:`);
+    commandList.push.apply(
+        commandList,
+        modules[key].commandList.map((c) => { return `${key} ` + c; })
+    );
+    commandFunctions[key] = modules[key].command;
+}
 
-const lambda = require('./lambda');
-lambda.init(stack);
+includeModule('./dynamodb', 'ddb', 'dynamodb');
+includeModule('./lambda', 'lambda');
 
 commandList.push.apply(commandList, [ 'exit / quit: end this program', '> ']);
 
-// Allow user to enter commands, specifically to enable invoking lambda with sam
+// allow user to enter commands, specifically to enable invoking lambda with sam
 function prompt() {
     rl.question(commandList.join('\n'), promptHandler);
 }
 prompt();
 
 function promptHandler(command) {
-    // TODO switch on first token, if ddb then call dyamodb.run('everything after first token')
-    switch (command){
-        case 'ddb start':
-            dynamodb.startDockerProcess(prompt);
-            break;
-        case 'ddb stop':
-            dynamodb.stopDockerProcess(prompt);
-            break;
-        case 'ddb create tables':
-            dynamodb.createTables(prompt);
-            break;
-        case 'ddb delete tables':
-            dynamodb.deleteTables(prompt);
-            break;
-        case 'exit':
-        case 'quit':
-            dynamodb.stopDockerProcess(() => {});
-            rl.close();
-            process.exit(0);
-        default:
-            console.error('invalid command');
-            prompt();
+    // handle exit case first
+    if (['exit', 'x', 'quit', 'q'].indexOf(command) > -1) {
+        modules['ddb'].shutdown();
+        rl.close();
+        process.exit(0);
+    }
+    // first token is the module, the rest of the command is to be handled by that module
+    commandKey = command.substr(0, command.indexOf(' '));
+    if (commandFunctions[commandKey]) {
+        commandFunctions[commandKey](
+            command.substr(command.indexOf(' ') + 1),
+            prompt
+        );
+    } else {
+        console.error('invalid command');
+        prompt();
     }
 }

@@ -1,6 +1,8 @@
 # aws-local-dev
 
-Based on [this excellent tutorial](https://sanderknape.com/2019/05/building-serverless-applications-aws-cdk/), this is a work in progress - please contribute if you can!
+The AWS tools for local development are good, but extremely limited and don't integrate well. This is an attempt to create a simple way to define, build, test and deploy AWS projects using both CDK and SAM.
+
+Inspired by [this excellent tutorial](https://sanderknape.com/2019/05/building-serverless-applications-aws-cdk/), this is a work in progress - please contribute if you can!
 
 ## Tooling setup for local AWS development
 
@@ -9,11 +11,10 @@ Based on [this excellent tutorial](https://sanderknape.com/2019/05/building-serv
 It is worth going through the following guides to familiarize yourself with the tools:
 
 - create programmatic user in IAM with admin permissions
-- https://docs.aws.amazon.com/toolkit-for-vscode/latest/userguide/setup-toolkit.html
-  - set up credentials with the profile id "default"
-- follow cdk guide
-  - get 12 digit account id from My Account in console
-  - https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html#hello_world_tutorial
+- if you're using visual studio code (recommended), [configure aws toolkit](https://docs.aws.amazon.com/toolkit-for-vscode/latest/userguide/setup-toolkit.html)
+- set up credentials with the profile id "default"
+- get 12 digit account id from My Account in console
+- follow [the CDK hello world tutorial](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html#hello_world_tutorial)
 
 ### Tool Versions
 

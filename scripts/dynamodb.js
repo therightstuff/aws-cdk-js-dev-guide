@@ -20,14 +20,104 @@ function stripUnusedChars(str) {
     return str;
 }
 
+function startDockerProcess(next) {
+    next = next || (() => {});
+    if (ddbDocker) {
+        console.error('dynamodb already running');
+        return next();
+    }
+    // Spin up a docker instance of the DynamoDB in a separate process
+    ddbDocker = cp.spawn('docker', ['run', '--name', ddbDockerName, '--rm', '-p', '8000:8000', 'amazon/dynamodb-local']);
+    ddbDocker.stdout.on('data', (data) => {
+        console.log(`ddb stdout: ${data}`);
+        next();
+    });
+
+    ddbDocker.stderr.on('data', (data) => {
+        console.error(`ddb stderr: ${data}`);
+        // try to remove the docker container before quitting
+        cp.execSync(`docker rm -f ${ddbDockerName}`);
+        process.exit(0);
+    });
+
+    ddbDocker.on('close', (code) => {
+        console.log(`ddb docker child process exited with code ${code}`);
+    });
+}
+
+function stopDockerProcess(next) {
+    next = next || (() => {});
+    if (ddbDocker) {
+        cp.execSync(`docker rm -f ${ddbDockerName}`);
+        ddbDocker = null;
+    } else {
+        console.error('dynamodb not running');
+    }
+    next();
+}
+
+function createTables(next) {
+    next = next || (() => {});
+    for (let key in tables) {
+        let table = tables[key];
+
+        dynamodb.createTable(table.Properties, function(err, data) {
+            if (err) {
+                console.error(`Unable to create table ${key}. Error JSON:`, JSON.stringify(err, null, 2));
+            } else {
+                console.log(`Created table ${key}. Table description JSON:`, JSON.stringify(data, null, 2));
+            }
+            next();
+        });
+    }
+}
+
+function deleteTables(next) {
+    next = next || (() => {});
+    for (let key in tables) {
+        let table = tables[key];
+
+        dynamodb.deleteTable({ TableName: table.Properties.TableName }, function(err, data) {
+            if (err) {
+                console.error(`Unable to delete table ${key}. Error JSON:`, JSON.stringify(err, null, 2));
+            } else {
+                console.log(`Deleted table ${key}. Table description JSON:`, JSON.stringify(data, null, 2));
+            }
+            next();
+        });
+    }
+}
+
 const exportable = {
     commandList: [
-        'dynamodb:',
-        'ddb start: start dynamodb docker instance',
-        'ddb stop: stop dynamodb docker instance',
-        'ddb create tables: create database tables defined by cdk output',
-        'ddb delete tables: delete database tables'
+        'start: start dynamodb docker instance',
+        'stop: stop dynamodb docker instance',
+        'create tables: create database tables defined by cdk output',
+        'delete tables: delete database tables'
     ],
+    command: (command, next) => {
+        next = next || (() => {});
+        switch(command) {
+            case 'start':
+                startDockerProcess(next);
+                break;
+            case 'stop':
+                stopDockerProcess(next);
+                break;
+            case 'create tables':
+                createTables(next);
+                break;
+            case 'delete tables':
+                deleteTables(next);
+                break;
+            default:
+                console.error('invalid command');
+                next();
+        }
+    },
+    shutdown: () => {
+        stopDockerProcess(() => {});
+    },
     init: (stack) => {
         console.log("retrieving table names...");
         for (let i in stack.node.children) {
@@ -49,66 +139,6 @@ const exportable = {
                     delete tables[tableName].Properties.TimeToLiveSpecification;
                 }
             }
-        }
-    }, // init
-    startDockerProcess: (prompt) => {
-        if (ddbDocker) {
-            console.error('dynamodb already running');
-            return prompt();
-        }
-        // Spin up a docker instance of the DynamoDB in a separate process
-        ddbDocker = cp.spawn('docker', ['run', '--name', ddbDockerName, '--rm', '-p', '8000:8000', 'amazon/dynamodb-local']);
-        ddbDocker.stdout.on('data', (data) => {
-            console.log(`ddb stdout: ${data}`);
-            prompt();
-        });
-
-        ddbDocker.stderr.on('data', (data) => {
-            console.error(`ddb stderr: ${data}`);
-            // try to remove the docker container before quitting
-            cp.execSync(`docker rm -f ${ddbDockerName}`);
-            process.exit(0);
-        });
-
-        ddbDocker.on('close', (code) => {
-            console.log(`ddb docker child process exited with code ${code}`);
-        });
-    },
-    stopDockerProcess: (prompt) => {
-        if (ddbDocker) {
-            cp.execSync(`docker rm -f ${ddbDockerName}`);
-            ddbDocker = null;
-        } else {
-            console.error('dynamodb not running');
-        }
-        prompt();
-    },
-    createTables: (prompt) => {
-        for (let key in tables) {
-            let table = tables[key];
-
-            dynamodb.createTable(table.Properties, function(err, data) {
-                if (err) {
-                    console.error(`Unable to create table ${key}. Error JSON:`, JSON.stringify(err, null, 2));
-                } else {
-                    console.log(`Created table ${key}. Table description JSON:`, JSON.stringify(data, null, 2));
-                }
-                prompt();
-            });
-        }
-    },
-    deleteTables: (prompt) => {
-        for (let key in tables) {
-            let table = tables[key];
-
-            dynamodb.deleteTable({ TableName: table.Properties.TableName }, function(err, data) {
-                if (err) {
-                    console.error(`Unable to delete table ${key}. Error JSON:`, JSON.stringify(err, null, 2));
-                } else {
-                    console.log(`Deleted table ${key}. Table description JSON:`, JSON.stringify(data, null, 2));
-                }
-                prompt();
-            });
         }
     }
 };

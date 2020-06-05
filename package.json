@@ -1,5 +1,5 @@
 {
-  "name": "aws-local-dev",
+  "name": "aws-local-dev-js",
   "version": "0.1.0",
   "bin": {
     "aws-local-dev": "bin/aws-local-dev.js"
@@ -15,14 +15,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/therightstuff/aws-local-dev.git"
+    "url": "git+https://github.com/therightstuff/aws-local-dev-js.git"
   },
   "author": "therightstuff",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/therightstuff/aws-local-dev/issues"
+    "url": "https://github.com/therightstuff/aws-local-dev-js/issues"
   },
-  "homepage": "https://github.com/therightstuff/aws-local-dev#readme",
+  "homepage": "https://github.com/therightstuff/aws-local-dev-js#readme",
   "devDependencies": {
     "@aws-cdk/assert": "1.42.0",
     "@types/jest": "^25.2.1",

@@ -12,6 +12,10 @@ export class AwsLocalDevStack extends cdk.Stack {
       runtime: Runtime.NODEJS_12_X,
       handler: 'index.handler',
       code: Code.asset('./handlers/simple'),
+      environment: {
+        HELLO: "Hello",
+        WORLD: "World"
+      },
     });
 
     const simpleApi = new RestApi(this, 'simple-api', {
@@ -49,6 +53,7 @@ export class AwsLocalDevStack extends cdk.Stack {
       handler: 'index.handler',
       code: Code.asset('./handlers/dynamodb'),
       environment: {
+        AWS_LOCAL_DEV: "FALSE",
         TABLE_NAME: dynamodbTable.tableName
       },
     });

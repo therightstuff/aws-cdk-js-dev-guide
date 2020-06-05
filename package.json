@@ -10,7 +10,7 @@
     "test-units": "jest",
     "cdk": "cdk",
     "synth": "cdk synth",
-    "synth-local": "AWS_LOCAL_DEV=true cdk synth --no-staging > template.yaml",
+    "synth-local": "tsc && AWS_LOCAL_DEV=true cdk synth --no-staging > template.yaml",
     "test-local": "node scripts/run.js"
   },
   "repository": {

@@ -1,6 +1,6 @@
 # aws-local-dev
 
-The AWS tools for local development are good, but extremely limited and don't integrate well. This is an attempt to create a simple way to define, build, test and deploy AWS projects using both CDK and SAM.
+The AWS tools for local development are good, but extremely limited and don't integrate well [by design](https://github.com/awslabs/aws-sam-cli/issues/1911) (*WHY NOT?!?!*). This is an attempt to create a simple way to define, build, test and deploy AWS projects using both CDK and SAM.
 
 Inspired by [this excellent tutorial](https://sanderknape.com/2019/05/building-serverless-applications-aws-cdk/), this is a work in progress - please contribute if you can!
 
@@ -53,20 +53,21 @@ To compile typescript, synthesize cdk, and provide an interface for easily setti
 
 ### DynamoDB
 
-To emulate DynamoDB locally using the CDK, run the vanilla node.js script `scripts/run-dynamodb.js`.
-
-This will:
-
-- Compile the TypeScript to Javascript
-- Use CDK to synthesize the `template.yaml` file.
-- Retrieve table definitions from `template.yaml`
-- Prompt the user for instructions
-
 The user can start or stop the local DynamoDB instance (running in a Docker container),
 and create or delete the tables extracted from `template.yaml`. The DynamoDB container
 will be closed automatically on exit.
 
 ### Lambda
 
-sam: lambda env includes dynamodb url which is localhost
-cdk:
+Lambda functions can be invoked as follows:
+
+- lambda function-name
+- lambda function-name [sam options]
+
+#### Environment variable overrides
+
+SAM options include `--env-vars [path to JSON file]`, but in order for the JSON file to function it needs to reference the CDK-transformed function name. To facilitate this, there is a `test/env.template.json` file in which you can configure the environment variables using the function name (eg. `simple-function`), which will then be transformed into `test/env.json` as part of the setup when running `npm run test-local`.
+
+**It is important to note that any variable not already defined in the CDK stack definition will not be visible to the locally-invoked function.**
+
+If any environment variables are *not* included in `test/env.json` then the original CDK-defined values will be used.

@@ -18,7 +18,7 @@ const exportable = {
         if (exportable.commandList.indexOf(command) > -1) {
             // TODO command will include name and sample request file if any
             // name => functions[name].Properties.FunctionName
-            // lambda simple-function -> sam local invoke simplefunctionD9727239 --debug
+            // lambda simple-function -> sam local invoke simplefunctionD9727239 --env-vars test/env.json --debug
         }
         console.log('NOT IMPLEMENTED');
         next();
@@ -34,7 +34,7 @@ const exportable = {
             }
         }
 
-        console.log("retrieving function definitions...")
+        console.log("retrieving function definitions...");
         let template = yaml.safeLoadAll(fs.readFileSync('template.yaml'));
         for (let key in template[0].Resources) {
             for (let functionName in functions) {
@@ -47,6 +47,14 @@ const exportable = {
                 }
             }
         }
+
+        console.log("transforming test/env.json.template...");
+        let envs = JSON.parse(fs.readFileSync("./test/env.template.json"));
+        for (name in envs) {
+            envs[functions[name].Properties.FunctionName] = envs[name];
+            delete envs[name];
+        }
+        fs.writeFileSync("./test/env.json", JSON.stringify(envs));
     } // init
 };
 

@@ -15,12 +15,7 @@ var rl = readline.createInterface({
   terminal: false
 });
 
-console.log('compiling typescript...');
-cp.execSync('npm run build', {
-    stdio: 'inherit'
-});
-
-console.log('using CDK to synthesize `template.yaml`...');
+console.log('compiling typescript and using CDK to synthesize `template.yaml`...');
 cp.execSync('AWS_LOCAL_DEV=true npm run synth-local', {
     stdio: 'inherit'
 });

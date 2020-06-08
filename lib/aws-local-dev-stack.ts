@@ -14,7 +14,8 @@ export class AwsLocalDevStack extends cdk.Stack {
       code: Code.asset('./handlers/simple'),
       environment: {
         HELLO: "Hello",
-        WORLD: "World"
+        WORLD: "World",
+        AWS_LOCAL_DEV: "false"
       },
     });
 
@@ -31,6 +32,9 @@ export class AwsLocalDevStack extends cdk.Stack {
       runtime: Runtime.NODEJS_12_X,
       handler: 'index.handler',
       code: Code.asset('./handlers/layer'),
+      environment: {
+        AWS_LOCAL_DEV: "false"
+      },
     });
 
     const layerApi = new RestApi(this, 'layer-api', {
@@ -53,8 +57,11 @@ export class AwsLocalDevStack extends cdk.Stack {
       handler: 'index.handler',
       code: Code.asset('./handlers/dynamodb'),
       environment: {
-        AWS_LOCAL_DEV: "FALSE",
-        TABLE_NAME: dynamodbTable.tableName
+        AWS_LOCAL_DEV: "false",
+        TABLE_NAME: dynamodbTable.tableName,
+        LOCAL_DDB_URL: "http://localhost:8000",
+        LOCAL_DDB_ACCESS_KEY_ID: "xxxx",
+        LOCAL_DDB_SECRET_ACCESS_KEY: "xxxx"
       },
     });
 

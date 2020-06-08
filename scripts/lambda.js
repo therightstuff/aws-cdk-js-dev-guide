@@ -50,7 +50,16 @@ const exportable = {
 
         console.log("transforming test/env.json.template...");
         let envs = JSON.parse(fs.readFileSync("./test/env.template.json"));
+        // before processing envs, add any functions that haven't been explicitly references
+        for (name in functions) {
+            if (!envs[name]) {
+                envs[name] = {};
+            }
+        }
         for (name in envs) {
+            // add AWS_LOCAL_DEV: "true" to environment variables
+            envs[name].AWS_LOCAL_DEV = "true";
+            // rename key to generated function name
             envs[functions[name].Properties.FunctionName] = envs[name];
             delete envs[name];
         }

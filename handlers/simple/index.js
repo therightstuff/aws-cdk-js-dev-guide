@@ -1,4 +1,5 @@
 exports.handler = async (event) => {
+    console.log("starting simple js");
     console.log(event);
     const promise = new Promise(function(resolve, reject) {
         let localResponse = "";

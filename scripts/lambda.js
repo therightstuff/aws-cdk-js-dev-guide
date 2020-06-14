@@ -16,9 +16,15 @@ const exportable = {
     command: (command, next) => {
         next = next || (() => {});
         if (exportable.commandList.indexOf(command) > -1) {
+            // https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-local-invoke.html
+            // 1. list available test event objects
+            //      eg ddb get, ddb post
+            // 2. logs to stdout by default
+            // 3. always add test/env.json
+            // 4. layers
             // TODO command will include name and sample request file if any
             // name => functions[name].Properties.FunctionName
-            // lambda simple-function -> sam local invoke simplefunctionD9727239 --env-vars test/env.json --debug
+            // lambda simple-function -> sam local invoke simplefunctionD9727239 --env-vars test/env.json --debug --log-file logs
         }
         console.log('NOT IMPLEMENTED');
         next();

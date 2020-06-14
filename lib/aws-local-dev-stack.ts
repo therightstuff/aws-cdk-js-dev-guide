@@ -1,7 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import { RestApi, LambdaIntegration } from '@aws-cdk/aws-apigateway';
 import { Table, AttributeType, BillingMode } from '@aws-cdk/aws-dynamodb';
-import { Function, Runtime, Code } from '@aws-cdk/aws-lambda';
+import { Function, Runtime, Code, LayerVersion } from '@aws-cdk/aws-lambda';
 
 export class AwsLocalDevStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -27,6 +27,16 @@ export class AwsLocalDevStack extends cdk.Stack {
 
     simpleApi.root.addMethod('GET', new LambdaIntegration(simpleFunction));
 
+    // layer
+    // https://www.youtube.com/watch?v=xCgcJjqsLGw
+    // https://www.codeproject.com/Articles/5269904/Deploy-a-Typescript-Lambda-function-with-AWS-CDK-a
+    const layer = new LayerVersion(this, 'test-layer', {
+      code: Code.fromAsset(path.join(__dirname, 'layer-code')),
+      compatibleRuntimes: [Runtime.NODEJS_12_X],
+      license: 'MIT',
+      description: 'A layer for the layer and dynamodb test functions',
+    });
+
     // layer test function
     const layerFunction = new Function(this, 'layer-function', {
       runtime: Runtime.NODEJS_12_X,
@@ -35,6 +45,7 @@ export class AwsLocalDevStack extends cdk.Stack {
       environment: {
         AWS_LOCAL_DEV: "false"
       },
+      layers: [layer],
     });
 
     const layerApi = new RestApi(this, 'layer-api', {
@@ -63,6 +74,7 @@ export class AwsLocalDevStack extends cdk.Stack {
         LOCAL_DDB_ACCESS_KEY_ID: "xxxx",
         LOCAL_DDB_SECRET_ACCESS_KEY: "xxxx"
       },
+      layers: [layer],
     });
 
     dynamodbTable.grant(dynamodbFunction,

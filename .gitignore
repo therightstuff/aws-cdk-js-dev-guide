@@ -15,6 +15,4 @@ template.yaml
 # Parcel build directories
 .cache
 .build
-
-# transformed env.json
-test/env.json
+layers/build/*

@@ -3,7 +3,7 @@ import { RestApi, LambdaIntegration } from '@aws-cdk/aws-apigateway';
 import { Table, AttributeType, BillingMode } from '@aws-cdk/aws-dynamodb';
 import { Function, Runtime, Code, LayerVersion } from '@aws-cdk/aws-lambda';
 
-export class AwsLocalDevStack extends cdk.Stack {
+export class AwsStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -14,8 +14,7 @@ export class AwsLocalDevStack extends cdk.Stack {
       code: Code.asset('./handlers/simple'),
       environment: {
         HELLO: "Hello",
-        WORLD: "World",
-        AWS_LOCAL_DEV: "false"
+        WORLD: "World"
       },
     });
 
@@ -28,13 +27,12 @@ export class AwsLocalDevStack extends cdk.Stack {
     simpleApi.root.addMethod('GET', new LambdaIntegration(simpleFunction));
 
     // layer
-    // https://www.youtube.com/watch?v=xCgcJjqsLGw
-    // https://www.codeproject.com/Articles/5269904/Deploy-a-Typescript-Lambda-function-with-AWS-CDK-a
-    const layer = new LayerVersion(this, 'test-layer', {
-      code: Code.fromAsset(path.join(__dirname, 'layer-code')),
+    const layer = new LayerVersion(this, 'sample-layer', {
+      // Code.fromAsset must reference the build folder
+      code: Code.fromAsset('./layers/build/sample-layer'),
       compatibleRuntimes: [Runtime.NODEJS_12_X],
       license: 'MIT',
-      description: 'A layer for the layer and dynamodb test functions',
+      description: 'A sample layer for the layer and dynamodb test functions',
     });
 
     // layer test function
@@ -42,9 +40,6 @@ export class AwsLocalDevStack extends cdk.Stack {
       runtime: Runtime.NODEJS_12_X,
       handler: 'index.handler',
       code: Code.asset('./handlers/layer'),
-      environment: {
-        AWS_LOCAL_DEV: "false"
-      },
       layers: [layer],
     });
 
@@ -63,25 +58,33 @@ export class AwsLocalDevStack extends cdk.Stack {
       timeToLiveAttribute: 'expiration'
     });
 
-    const dynamodbFunction = new Function(this, 'dynamodb-function', {
+    const dynamodbScanFunction = new Function(this, 'dynamodb-function-scan', {
       runtime: Runtime.NODEJS_12_X,
-      handler: 'index.handler',
+      handler: 'index.scan',
       code: Code.asset('./handlers/dynamodb'),
       environment: {
-        AWS_LOCAL_DEV: "false",
-        TABLE_NAME: dynamodbTable.tableName,
-        LOCAL_DDB_URL: "http://localhost:8000",
-        LOCAL_DDB_ACCESS_KEY_ID: "xxxx",
-        LOCAL_DDB_SECRET_ACCESS_KEY: "xxxx"
+        TABLE_NAME: dynamodbTable.tableName
+      },
+    });
+
+    dynamodbTable.grant(dynamodbScanFunction,
+      "dynamodb:GetItem",
+      "dynamodb:BatchGetItem",
+      "dynamodb:Query"
+    );
+
+    const dynamodbUpdateFunction = new Function(this, 'dynamodb-function-update', {
+      runtime: Runtime.NODEJS_12_X,
+      handler: 'index.update',
+      code: Code.asset('./handlers/dynamodb'),
+      environment: {
+        TABLE_NAME: dynamodbTable.tableName
       },
       layers: [layer],
     });
 
-    dynamodbTable.grant(dynamodbFunction,
+    dynamodbTable.grant(dynamodbUpdateFunction,
       "dynamodb:PutItem",
-      "dynamodb:GetItem",
-      "dynamodb:BatchGetItem",
-      "dynamodb:Query",
       "dynamodb:UpdateItem"
     );
 
@@ -91,8 +94,8 @@ export class AwsLocalDevStack extends cdk.Stack {
       }
     });
 
-    dynamodbApi.root.addMethod('GET', new LambdaIntegration(dynamodbFunction));
-    dynamodbApi.root.addMethod('POST', new LambdaIntegration(dynamodbFunction));
-    dynamodbApi.root.addMethod('PUT', new LambdaIntegration(dynamodbFunction));
+    dynamodbApi.root.addMethod('GET', new LambdaIntegration(dynamodbScanFunction));
+    dynamodbApi.root.addMethod('POST', new LambdaIntegration(dynamodbUpdateFunction));
+    dynamodbApi.root.addMethod('PUT', new LambdaIntegration(dynamodbUpdateFunction));
   }
 }

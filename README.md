@@ -1,8 +1,12 @@
-# aws-local-dev
+# AWS CDK Javascript Dev Guide
 
-The AWS tools for local development are good, but extremely limited and don't integrate well [by design](https://github.com/awslabs/aws-sam-cli/issues/1911) (*WHY NOT?!?!*). This is an attempt to create a simple way to define, build, test and deploy AWS projects using both CDK and SAM.
+This project is a template that's intended to serve as a guide for working with CDK in TypeScript / Javascript.
 
-Inspired by [this excellent tutorial](https://sanderknape.com/2019/05/building-serverless-applications-aws-cdk/), this is a work in progress - please contribute if you can!
+## History
+
+This was initially an attempt to create a simple way to define, build, test and deploy AWS projects using CDK and SAM. In spite of my discovering that SAM is extremely limited and doesn't integrate well with CDK [by design](https://github.com/awslabs/aws-sam-cli/issues/1911), it was only after I started trying to integrate lambda layers that it became clear that testing "locally" with SAM means only one thing: deploying everything to the cloud and then invoking lambdas locally against the cloud infrastructure. Once everything's in the cloud already, I can't see much utility in testing locally - it's simpler and safer to deploy a separate stack for testing.
+
+The only real way to test locally would be to recreate the invoked lambda's context manually, which has proved too costly for too little benefit. If you're interested in seeing my efforts in that direction, I've left the `feature/adding-lambdas` branch up for reference.
 
 ## Tooling setup for local AWS development
 
@@ -18,11 +22,13 @@ It is worth going through the following guides to familiarize yourself with the 
 
 ### Tool Versions
 
-The two main AWS packages in use, CDK and SAM, tend to be updated frequently with breaking changes. Prior to committing changes, please ensure that you are using the latest versions and that everything is building and running correctly.
+CDK, like SAM, tends to be updated frequently with breaking changes. Prior to committing changes, please ensure that you are using the latest versions and that everything is building and running correctly.
 
 ### CDK Initialization
 
-The first step to creating a CDK project is initializing it with `cdk init`, and a CDK project cannot be initialized if the project directory isn't empty. If you use an existing project (like this one) as a template, bear in mind that you will have to rename the stack in multiple locations. The following is from the auto-generated CDK README:
+The first step to creating a CDK project is initializing it with `cdk init`, and a CDK project cannot be initialized if the project directory isn't empty. If you would like to use an existing project (like this one) as a template, bear in mind that you will have to rename the stack in multiple locations and it would probably be safer and easier to create a new project and copy/paste the bits you need from here.
+
+The following is from the auto-generated CDK README:
 
 ```markdown
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
@@ -44,30 +50,3 @@ The stack definition is located in the `/lib` folder, this is where the stack is
 By default, CDK deploys stacks that are [environment-agnostic](https://docs.aws.amazon.com/cdk/latest/guide/environments.html). To deploy to specific regions, update the `bin/regions.json` file with the desired region and account numbers.
 
 If this file does not contain any region specifications, the stack will be deployed as environment-agnostic.
-
-Region specifications will be ignored for local testing.
-
-## Local testing
-
-To compile typescript, synthesize cdk, and provide an interface for easily setting up and tearing down local components and invoking lambda functions against them, run `npm run test-local`.
-
-### DynamoDB
-
-The user can start or stop the local DynamoDB instance (running in a Docker container),
-and create or delete the tables extracted from `template.yaml`. The DynamoDB container
-will be closed automatically on exit.
-
-### Lambda
-
-Lambda functions can be invoked as follows:
-
-- lambda function-name
-- lambda function-name [sam options]
-
-#### Environment variable overrides
-
-SAM options include `--env-vars [path to JSON file]`, but in order for the JSON file to function it needs to reference the CDK-transformed function name. To facilitate this, there is a `test/env.template.json` file in which you can configure the environment variables using the function name (eg. `simple-function`), which will then be transformed into `test/env.json` as part of the setup when running `npm run test-local`.
-
-**It is important to note that any variable not already defined in the CDK stack definition will not be visible to the locally-invoked function.**
-
-If any environment variables are *not* included in `test/env.json` then the original CDK-defined values will be used.

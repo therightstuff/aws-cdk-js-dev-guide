@@ -8,5 +8,4 @@ cdk.out
 # synthesized output
 template.yaml
 
-# transformed env.json
-test/env.json
+layers/build/*

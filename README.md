@@ -6,7 +6,7 @@ This project is a template that's intended to serve as a guide for working with 
 
 This was initially an attempt to create a simple way to define, build, test and deploy AWS projects using CDK and SAM. In spite of my discovering that SAM is extremely limited and doesn't integrate well with CDK [by design](https://github.com/awslabs/aws-sam-cli/issues/1911), it was only after I started trying to integrate lambda layers that it became clear that testing "locally" with SAM means only one thing: deploying everything to the cloud and then invoking lambdas locally against the cloud infrastructure. Once everything's in the cloud already, I can't see much utility in testing locally - it's simpler and safer to deploy a separate stack for testing.
 
-The only real way to test locally would be to recreate the invoked lambda's context manually, which has proved too costly for too little benefit. If you're interested in seeing my efforts in that direction, I've left the `feature/adding-lambdas` branch up for reference.
+The only real way to test locally would be to recreate the invoked lambda's context manually, which has proved too costly for too little benefit. If you're interested in seeing my efforts in that direction, I've left the `feature/adding-lambdas` branch up for reference (although that's only partial, the functional code for actually running the lambdas in a separate project and I'm not sure it's worth bringing in here - ask me if you're really interested).
 
 ## Tooling setup for local AWS development
 

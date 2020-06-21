@@ -2,7 +2,7 @@
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
 import { AwsStack } from '../lib/aws-cdk-js-dev-guide-stack';
-import regionsJson from './regions.json';
+import regionsJson from '../lib/regions.json';
 
 const app = new cdk.App();
 
@@ -13,11 +13,27 @@ type regionsType = {
 
 let regions: regionsType = regionsJson;
 
-if (Object.keys(regions).length == 0) {
-    // deploy region-agnostic when no regions are specified
-    new AwsStack(app, `AwsStack`);
-} else {
-    for (let region in regions) {
-        new AwsStack(app, `AwsStack-${region}`, { env: regions[region] });
+// determine which stacks will be deployed to which regions
+// for region-agnostic deployments, set the region to the empty string
+type stagesType = {
+    [key: string]: string[]
+}
+
+let stages:stagesType = {
+    prod: ["za"],
+    test: ["eu", "za"],
+    dev: [""]
+}
+
+for (let name in stages) {
+    let stage:string[] = stages[name];
+    for (let i in stage) {
+        let region = stage[i];
+        if (region.length == 0) {
+            // deploy region-agnostic when no region is specified
+            new AwsStack(app, `AwsStack-${name}`);
+        } else {
+            new AwsStack(app, `AwsStack-${name}-${region}`, { env: regions[region] });
+        }
     }
 }

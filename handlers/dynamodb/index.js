@@ -21,7 +21,12 @@ exports.scan = async (event) => {
         let result = await dynamodb.scan({
             TableName: process.env.TABLE_NAME
         }).promise();
-        return resolve(result);
+        return resolve({
+            "isBase64Encoded": false,
+            "statusCode": 200,
+            "headers": {},
+            "body": JSON.stringify(result)
+        });
     });
     return promise;
 }
@@ -52,7 +57,12 @@ exports.update = async (event) => {
             }
         }).promise();
 
-        return resolve(result);
+        return resolve({
+            "isBase64Encoded": false,
+            "statusCode": 200,
+            "headers": {},
+            "body": JSON.stringify(result)
+        });
     });
     return promise;
 }

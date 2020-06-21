@@ -19,12 +19,16 @@ export class AwsStack extends cdk.Stack {
     });
 
     const simpleApi = new RestApi(this, 'simple-api', {
-      deployOptions: {
-        stageName: 'dev'
-      }
+      restApiName: 'Simple API sample',
+      description: "Simple API sample with no dependencies"
     });
 
-    simpleApi.root.addMethod('GET', new LambdaIntegration(simpleFunction));
+    simpleApi.root.addMethod('GET', new LambdaIntegration(
+      simpleFunction,
+      {
+        requestTemplates: { "application/json": '{ "statusCode": "200" }' }
+      }
+    ));
 
     // layer
     const layer = new LayerVersion(this, 'sample-layer', {
@@ -43,11 +47,7 @@ export class AwsStack extends cdk.Stack {
       layers: [layer],
     });
 
-    const layerApi = new RestApi(this, 'layer-api', {
-      deployOptions: {
-        stageName: 'dev'
-      }
-    });
+    const layerApi = new RestApi(this, 'layer-api');
 
     layerApi.root.addMethod('GET', new LambdaIntegration(layerFunction));
 
@@ -88,11 +88,7 @@ export class AwsStack extends cdk.Stack {
       "dynamodb:UpdateItem"
     );
 
-    const dynamodbApi = new RestApi(this, 'dynamodb-api', {
-      deployOptions: {
-        stageName: 'dev'
-      }
-    });
+    const dynamodbApi = new RestApi(this, 'dynamodb-api');
 
     dynamodbApi.root.addMethod('GET', new LambdaIntegration(dynamodbScanFunction));
     dynamodbApi.root.addMethod('POST', new LambdaIntegration(dynamodbUpdateFunction));

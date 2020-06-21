@@ -61,6 +61,8 @@ Lambda functions are defined in the `handlers`, and include the following sample
 - simple: a stateless function
 - layer: a function that uses packages in a lambda layer
 - documentdb: a function with handlers for storing and retrieving data
+  - NOTE: `timeToLiveAttribute` has been used in the example to set a TTL on
+    test data. Remove this attribute for persistent data.
 
 If the lambda functions must return responses in the following format:
 
@@ -69,9 +71,7 @@ If the lambda functions must return responses in the following format:
     "isBase64Encoded": false,
     "statusCode": 200,
     "headers": {},
-    "body": JSON.stringify({
-        "simpleResponse": `${process.env.HELLO}, ${process.env.WORLD}!`
-    }
+    "body": JSON.stringify({...})
 }
 ```
 
@@ -83,7 +83,7 @@ To create a layer, simply add a `<layer name>` folder in the `layers/src` direct
 
 ### Deployment
 
-By default, CDK deploys stacks that are [environment-agnostic](https://docs.aws.amazon.com/cdk/latest/guide/environments.html). To enable environment-agnostic deployments, run `cdk bootstrap` before `cdk deploy`.
+By default, CDK deploys stacks that are [environment-agnostic](https://docs.aws.amazon.com/cdk/latest/guide/environments.html). To enable environment-agnostic deployments, run `cdk bootstrap` before `cdk deploy`, but configuring specific regions is probably the safer practice.
 
 To deploy to specific regions, update the `bin/regions.json` file with the desired region and account numbers.
 

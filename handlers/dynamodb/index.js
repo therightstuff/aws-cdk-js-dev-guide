@@ -2,31 +2,34 @@ const aws = require('aws-sdk');
 const dynamodb = new aws.DynamoDB.DocumentClient();
 const uuid = require('uuid').v4;
 
+const TABLE_NAME = process.env.TABLE_NAME;
 const TTL_IN_SECONDS = 60;
 
 function getExpirationTime() {
     return Math.floor(Date.now() / 1000) + TTL_IN_SECONDS;
 }
 
+function createResponse(status, json) {
+    return {
+        "isBase64Encoded": false,
+        "statusCode": status,
+        "headers": {},
+        "body": JSON.stringify(json)
+    }
+}
+
 exports.scan = async (event) => {
     const promise = new Promise(function(resolve, reject) {
-        let payload = null;
-        try {
-            payload = JSON.parse(event.body);
-        } catch (err) {
-            return reject("unable to parse request body, expected valid JSON format");
-        }
-
         // scan the table for unexpired results
-        let result = await dynamodb.scan({
-            TableName: process.env.TABLE_NAME
-        }).promise();
-        return resolve({
-            "isBase64Encoded": false,
-            "statusCode": 200,
-            "headers": {},
-            "body": JSON.stringify(result)
-        });
+        dynamodb.scan({
+            TableName: TABLE_NAME
+        }).promise()
+        .then((data) => {
+            resolve(
+                createResponse(200, data.Items)
+            );
+        })
+        .catch(reject);
     });
     return promise;
 }
@@ -37,32 +40,33 @@ exports.update = async (event) => {
         try {
             payload = JSON.parse(event.body);
         } catch (err) {
-            return reject("unable to parse request body, expected valid JSON format");
+            return resolve(
+                createResponse(400, {
+                    "success": false,
+                    "reason": "unable to parse request body, expected valid JSON format"
+                })
+            );
         }
 
-        // see https://stackoverflow.com/a/61295108/2860309
-        let method = null;
-        try {
-            method = event.requestContext.http.method
-        } catch (e) {}
-
         // add a new object to the table
-        let result = await dynamodb.put({
-            TableName: process.env.TABLE_NAME,
+        let newId = uuid();
+        dynamodb.put({
+            TableName: TABLE_NAME,
             Item: {
-                "id": uuid(),
+                "id": newId,
                 "payload": payload,
-                "method": method,
                 "expiration": getExpirationTime()
             }
-        }).promise();
-
-        return resolve({
-            "isBase64Encoded": false,
-            "statusCode": 200,
-            "headers": {},
-            "body": JSON.stringify(result)
-        });
+        }).promise()
+        .then(() => {
+            resolve(
+                createResponse(200, {
+                    "success": true,
+                    "id": newId
+                })
+            );
+        })
+        .catch(reject);
     });
     return promise;
 }

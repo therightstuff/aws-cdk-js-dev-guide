@@ -52,6 +52,7 @@ export class AwsStack extends cdk.Stack {
     layerApi.root.addMethod('GET', new LambdaIntegration(layerFunction));
 
     // dynamodb test function
+    // NOTE: remove timeToLiveAttribute if you don't want to set a TTL for the data
     const dynamodbTable = new Table(this, 'dynamodb-table', {
       partitionKey: { name: 'id', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,

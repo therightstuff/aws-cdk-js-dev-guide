@@ -19,6 +19,8 @@ type stagesType = {
     [key: string]: string[]
 }
 
+// this configuration results in the creation of AwsStack-dev,
+// AwsStack-prod-za, AwsStack-test-eu and AwsStack-test-za
 let stages:stagesType = {
     prod: ["za"],
     test: ["eu", "za"],

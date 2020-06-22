@@ -7,3 +7,5 @@ cdk.out
 
 # synthesized output
 template.yaml
+
+layers/build/*

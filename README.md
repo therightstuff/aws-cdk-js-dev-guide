@@ -6,13 +6,13 @@ This project is a template that's intended to serve as a guide for working with 
 
 This was initially an attempt to create a simple way to define, build, test and deploy AWS projects using CDK and SAM. In spite of my discovering that SAM is extremely limited and doesn't integrate well with CDK [by design](https://github.com/awslabs/aws-sam-cli/issues/1911), it was only after I started trying to integrate lambda layers that it became clear that testing "locally" with SAM means only one thing: deploying everything to the cloud and then invoking lambdas locally against the cloud infrastructure. Once everything's in the cloud already, I can't see much utility in testing locally - it's simpler and safer to deploy a separate stack for testing.
 
-The only real way to test locally would be to recreate the invoked lambda's context manually, which has proved too costly for too little benefit. If you're interested in seeing my efforts in that direction, I've left the `feature/adding-lambdas` branch up for reference (although that's only partial, the functional code for actually running the lambdas in a separate project and I'm not sure it's worth bringing in here - ask me if you're really interested).
+The only real way to test locally would be to recreate the invoked lambda's context manually, which has proved too costly for too little benefit. If you're interested in seeing my efforts in that direction, I've left the `feature/adding-lambdas` branch up for reference (although that's only partial, the functional code for actually running the lambdas in a separate project and I'm not sure it's worth bringing in here - shoot me a message if you're really interested).
 
 ## Tooling setup for local AWS development
 
 ### Preamble
 
-It is worth going through the following guides to familiarize yourself with the tools.
+It is valuable and necessary to go through the following steps to familiarize yourself with the tools.
 
 - create programmatic user in IAM with admin permissions
 - if you're using visual studio code (recommended), [configure aws toolkit](https://docs.aws.amazon.com/toolkit-for-vscode/latest/userguide/setup-toolkit.html)
@@ -26,21 +26,20 @@ CDK, like SAM, tends to be updated frequently with breaking changes. Prior to co
 
 ### CDK Initialization
 
-The first step to creating a CDK project is initializing it with `cdk init`, and a CDK project cannot be initialized if the project directory isn't empty. If you would like to use an existing project (like this one) as a template, bear in mind that you will have to rename the stack in multiple locations and it would probably be safer and easier to create a new project and copy/paste the bits you need from here.
+The first step to creating a CDK project is initializing it with `cdk init`, and a CDK project cannot be initialized if the project directory isn't empty. If you would like to use an existing project (like this one) as a template, bear in mind that you will have to rename the stack in multiple locations and it would probably be safer and easier to create a new project and copy and paste in the bits you need.
 
 ### Useful commands
 
 - `npm run build`   build layers and compile typescript to js
-- `npm run watch`   watch for changes and compile
-- `npm run test`    perform the jest unit tests
 - `cdk deploy`      deploy this stack to your default AWS account/region
 - `cdk diff`        compare deployed stack with current state
-- `cdk synth`       emits the synthesized CloudFormation template(s)
 - `npm run synth`   perform build steps then synthesize the CloudFormat template(s)
 
 ### Stack definition
 
 The stack definition is located in the `/lib` folder, this is where the stack is configured for deployment.
+
+See [AWS CDK API documentation](https://docs.aws.amazon.com/cdk/api/latest/docs/aws-construct-library.html) for reference.
 
 #### API Gateway Stages
 
@@ -56,15 +55,15 @@ const dynamodbApi = new RestApi(this, 'dynamodb-api', {
 
 #### Lambda Functions
 
-Lambda functions are defined in the `handlers`, and include the following samples:
+Lambda functions are defined in the `handlers` directory, and include the following samples:
 
-- simple: a stateless function
-- layer: a function that uses packages in a lambda layer
-- documentdb: a function with handlers for storing and retrieving data
+- `simple`: a stateless function
+- `layer`: a function that uses packages in a lambda layer
+- `documentdb`: a function with handlers for storing and retrieving data
   - NOTE: `timeToLiveAttribute` has been used in the example to set a TTL on
     test data. Remove this attribute for persistent data.
 
-If the lambda functions must return responses in the following format:
+Lambda functions MUST return responses in the following format:
 
 ```javascript
 {
@@ -91,9 +90,9 @@ An example for stack configuration has been provided in `bin/aws-cdk-js-dev-guid
 
 To deploy a stack, `cdk deploy <stack name>` (wildcards are supported).
 
-If you don't want to review each set of changes, use the `--require-approval=never` option.
+If you don't want to review each set of changes, use the `--require-approval=never` option (not recommended).
 
-The `Outputs` displayed at the end of the process include the API Gateway endpoints, but these are not complete. For example, if the endpoint for `AwsStack-dev.simpleapiEndpoint<hash>` is listed as `https://<hash>.execute-api.us-east-1.amazonaws.com/dev/`, you will need to make a GET request to `https://<hash>.execute-api.us-east-1.amazonaws.com/dev/simple-api`.
+The `Outputs` displayed at the end of the process include the API Gateway endpoints. These can be used as-is for the example lambda functions.
 
 ### Redeploying a Stack
 

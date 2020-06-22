@@ -18,23 +18,7 @@ function createResponse(status, json) {
     }
 }
 
-exports.scan = async (event) => {
-    const promise = new Promise(function(resolve, reject) {
-        // scan the table for unexpired results
-        dynamodb.scan({
-            TableName: TABLE_NAME
-        }).promise()
-        .then((data) => {
-            resolve(
-                createResponse(200, data.Items)
-            );
-        })
-        .catch(reject);
-    });
-    return promise;
-}
-
-exports.update = async (event) => {
+exports.handler = async (event) => {
     const promise = new Promise(function(resolve, reject) {
         let payload = null;
         try {

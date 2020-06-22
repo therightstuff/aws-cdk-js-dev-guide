@@ -61,22 +61,18 @@ export class AwsStack extends cdk.Stack {
 
     const dynamodbScanFunction = new Function(this, 'dynamodb-function-scan', {
       runtime: Runtime.NODEJS_12_X,
-      handler: 'index.scan',
+      handler: 'scan.handler',
       code: Code.asset('./handlers/dynamodb'),
       environment: {
         TABLE_NAME: dynamodbTable.tableName
       },
     });
 
-    dynamodbTable.grant(dynamodbScanFunction,
-      "dynamodb:GetItem",
-      "dynamodb:BatchGetItem",
-      "dynamodb:Query"
-    );
+    dynamodbTable.grantReadData(dynamodbScanFunction);
 
     const dynamodbUpdateFunction = new Function(this, 'dynamodb-function-update', {
       runtime: Runtime.NODEJS_12_X,
-      handler: 'index.update',
+      handler: 'update.handler',
       code: Code.asset('./handlers/dynamodb'),
       environment: {
         TABLE_NAME: dynamodbTable.tableName
@@ -84,10 +80,7 @@ export class AwsStack extends cdk.Stack {
       layers: [layer],
     });
 
-    dynamodbTable.grant(dynamodbUpdateFunction,
-      "dynamodb:PutItem",
-      "dynamodb:UpdateItem"
-    );
+    dynamodbTable.grantWriteData(dynamodbUpdateFunction);
 
     const dynamodbApi = new RestApi(this, 'dynamodb-api');
 

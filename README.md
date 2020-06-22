@@ -99,6 +99,10 @@ The `Outputs` displayed at the end of the process include the API Gateway endpoi
 
 One of the great advantages of using CDK is that updating a stack is as simple as running the `cdk deploy <stack name>` again.
 
+### Debugging
+
+Testing a lambda function via the API Gateway interface is unlikely to report useful error details. If a function is not behaving correctly or is failing, go to your CloudWatch dashboard and find the log group for the function.
+
 ### Deleting a Stack
 
 If for whatever reason you decide you want to delete a stack in its entirety, install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) and run `aws cloudformation delete-stack --stack-name <stack name>`.

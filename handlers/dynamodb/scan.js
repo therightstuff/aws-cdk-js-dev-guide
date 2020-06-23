@@ -13,7 +13,7 @@ function createResponse(status, json) {
 }
 
 exports.handler = async (event) => {
-    const promise = new Promise(function(resolve, reject) {
+    const promise = new Promise((resolve, reject) => {
         // scan the table for unexpired results
         dynamodb.scan({
             TableName: TABLE_NAME

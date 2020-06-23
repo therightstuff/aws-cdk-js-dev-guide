@@ -19,7 +19,7 @@ function createResponse(status, json) {
 }
 
 exports.handler = async (event) => {
-    const promise = new Promise(function(resolve, reject) {
+    const promise = new Promise((resolve, reject) => {
         let payload = null;
         try {
             payload = JSON.parse(event.body);

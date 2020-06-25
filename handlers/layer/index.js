@@ -1,16 +1,15 @@
 const aws = require('aws-sdk');
 const uuid = require('uuid').v4;
+const utils = require('/opt/nodejs/utils');
 
 exports.handler = async (event) => {
     const promise = new Promise((resolve, reject) => {
-        return resolve({
-            "isBase64Encoded": false,
+        resolve(utils.createResponse({
             "statusCode": 200,
-            "headers": {},
-            "body": JSON.stringify({
+            "body": {
                 "generatedId": uuid()
-            })
-        });
+            }
+        }));
     });
     return promise;
 }

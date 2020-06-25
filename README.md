@@ -26,7 +26,7 @@ CDK, like SAM, tends to be updated frequently with breaking changes. Prior to co
 
 ### CDK Initialization
 
-The first step to creating a CDK project is initializing it with `cdk init`, and a CDK project cannot be initialized if the project directory isn't empty. If you would like to use an existing project (like this one) as a template, bear in mind that you will have to rename the stack in multiple locations and it would probably be safer and easier to create a new project and copy and paste in the bits you need.
+The first step to creating a CDK project is initializing it with `cdk init app`, and a CDK project cannot be initialized if the project directory isn't empty. If you would like to use an existing project (like this one) as a template, bear in mind that you will have to rename the stack in multiple locations and it would probably be safer and easier to create a new project and copy and paste in the bits you need.
 
 ### Useful commands
 
@@ -80,6 +80,12 @@ Layers are composite packages that multiple lambda functions can reference.
 
 To create a layer, simply add a `<layer name>` folder in the `layers/src` directory that includes a `package.json` file. When the `npm run build` command is run, the packages are installed and the layer archive is produced and copied into the `layers/build` directory.
 
+To include a custom module in a layer, simply add it to a subfolder under the appropriate layer's `src` folder and it will be copied into the layer's build directory. Once the layer has been linked to a lambda function, it can then be accessed by including it from `/opt/nodejs/<module>`.
+
+See the sample files `layers/src/sample-layer` and `handlers/layer/index.js` for example usage.
+
+__WARNING__: "_Your function can access the content of the layer during execution in the /opt directory. Layers are applied in the order that's specified, merging any folders with the same name. If the same file appears in multiple layers, the version in the last applied layer is used._"
+
 ### Deployment
 
 By default, CDK deploys stacks that are [environment-agnostic](https://docs.aws.amazon.com/cdk/latest/guide/environments.html). To enable environment-agnostic deployments, run `cdk bootstrap` before `cdk deploy`, but configuring specific regions is probably the safer practice.
@@ -104,4 +110,4 @@ Testing a lambda function via the API Gateway interface is unlikely to report us
 
 ### Deleting a Stack
 
-If for whatever reason you decide you want to delete a stack in its entirety, install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) and run `aws cloudformation delete-stack --stack-name <stack name>`.
+If for whatever reason you decide you want to delete a stack in its entirety, install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) and run `aws cloudformation delete-stack --stack-name <stack name> --region <region name>`.

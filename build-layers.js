@@ -5,6 +5,7 @@
 // them into the layers/build folder
 
 const fs = require("fs");
+const fse = require("fs-extra");
 const process = require("child_process");
 
 // get layers' src directories
@@ -19,9 +20,24 @@ for (let i in srcdirs) {
     let layerSrcPath = `layers/src/${layer}`
     let layerBuildPath = `layers/build/${layer}/nodejs`
 
+    console.log(`removing existing build folder...`);
+    fse.removeSync(layerBuildPath);
     fs.mkdirSync(layerBuildPath, {recursive: true});
 
-    fs.copyFileSync(`${layerSrcPath}/package.json`, `${layerBuildPath}/package.json`);
+    // copy everything except the package-lock file and node_modules
+    let srcContents = fs.readdirSync(layerSrcPath, { withFileTypes: true })
+        .filter(dirent => {
+            return !(
+                dirent.name == "node_modules" ||
+                dirent.name == "package-lock.json"
+            )
+        })
+        .map(dirent => dirent.name)
+    for (let i in srcContents) {
+        let file = srcContents[i];
+        fse.copySync(`${layerSrcPath}/${file}`, `${layerBuildPath}/${file}`);
+    }
+
 
     console.log("installing npm dependencies...");
     process.execSync('npm install', { cwd: layerBuildPath });

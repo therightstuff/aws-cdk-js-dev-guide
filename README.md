@@ -80,11 +80,15 @@ Layers are composite packages that multiple lambda functions can reference.
 
 To create a layer, simply add a `<layer name>` folder in the `layers/src` directory that includes a `package.json` file. When the `npm run build` command is run, the packages are installed and the layer archive is produced and copied into the `layers/build` directory.
 
+##### Custom Lambda Layer Modules
+
 To include a custom module in a layer, simply add it to a subfolder under the appropriate layer's `src` folder and it will be copied into the layer's build directory. Once the layer has been linked to a lambda function, it can then be accessed by including it from `/opt/nodejs/<module>`.
 
-See the sample files `layers/src/sample-layer` and `handlers/layer/index.js` for example usage.
+While there's no problem with storing your layer's custom modules in its root, eg. `layers/src/sample-layer/utils.js`, if the layer is used in conjunction with other layers the modules may be unexpectedly overwritten:
 
-__WARNING__: "_Your function can access the content of the layer during execution in the /opt directory. Layers are applied in the order that's specified, merging any folders with the same name. If the same file appears in multiple layers, the version in the last applied layer is used._"
+"_Your function can access the content of the layer during execution in the /opt directory. Layers are applied in the order that's specified, merging any folders with the same name. If the same file appears in multiple layers, the version in the last applied layer is used._"
+
+To prevent this from happening, it's recommended to put custom modules in a subfolder with the same name as the layer eg. `layers/src/sample-layer/sample-layer/utils.js`. Not only does this prevent overwriting, but referencing the modules from your lambda functions becomes clearer as `require('/opt/nodejs/utils')` becomes `require('/opt/nodejs/sample-layer/utils')`.
 
 ### Deployment
 

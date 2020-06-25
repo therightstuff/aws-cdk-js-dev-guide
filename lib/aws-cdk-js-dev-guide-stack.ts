@@ -66,6 +66,7 @@ export class AwsStack extends cdk.Stack {
       environment: {
         TABLE_NAME: dynamodbTable.tableName
       },
+      layers: [layer],
     });
 
     dynamodbTable.grantReadData(dynamodbScanFunction);

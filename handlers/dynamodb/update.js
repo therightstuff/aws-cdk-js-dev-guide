@@ -1,6 +1,7 @@
 const aws = require('aws-sdk');
 const dynamodb = new aws.DynamoDB.DocumentClient();
 const uuid = require('uuid').v4;
+const utils = require('/opt/nodejs/sample-layer/utils');
 
 const TABLE_NAME = process.env.TABLE_NAME;
 const TTL_IN_SECONDS = 60;
@@ -9,27 +10,19 @@ function getExpirationTime() {
     return Math.floor(Date.now() / 1000) + TTL_IN_SECONDS;
 }
 
-function createResponse(status, json) {
-    return {
-        "isBase64Encoded": false,
-        "statusCode": status,
-        "headers": {},
-        "body": JSON.stringify(json)
-    }
-}
-
 exports.handler = async (event) => {
     const promise = new Promise((resolve, reject) => {
         let payload = null;
         try {
             payload = JSON.parse(event.body);
         } catch (err) {
-            return resolve(
-                createResponse(400, {
+            return resolve(utils.createResponse({
+                "statusCode": 400,
+                "body": {
                     "success": false,
                     "reason": "unable to parse request body, expected valid JSON format"
-                })
-            );
+                }
+            }));
         }
 
         // add a new object to the table
@@ -43,12 +36,13 @@ exports.handler = async (event) => {
             }
         }).promise()
         .then(() => {
-            resolve(
-                createResponse(200, {
+            resolve(utils.createResponse({
+                "statusCode": 200,
+                "body": {
                     "success": true,
                     "id": newId
-                })
-            );
+                }
+            }));
         })
         .catch(reject);
     });

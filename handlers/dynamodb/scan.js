@@ -1,16 +1,8 @@
 const aws = require('aws-sdk');
 const dynamodb = new aws.DynamoDB.DocumentClient();
+const utils = require('/opt/nodejs/sample-layer/utils');
 
 const TABLE_NAME = process.env.TABLE_NAME;
-
-function createResponse(status, json) {
-    return {
-        "isBase64Encoded": false,
-        "statusCode": status,
-        "headers": {},
-        "body": JSON.stringify(json)
-    }
-}
 
 exports.handler = async (event) => {
     const promise = new Promise((resolve, reject) => {
@@ -19,9 +11,10 @@ exports.handler = async (event) => {
             TableName: TABLE_NAME
         }).promise()
         .then((data) => {
-            resolve(
-                createResponse(200, data.Items)
-            );
+            resolve(utils.createResponse({
+                "statusCode": 200,
+                "body": data.Items
+            }));
         })
         .catch(reject);
     });

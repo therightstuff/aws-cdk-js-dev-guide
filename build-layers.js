@@ -8,6 +8,10 @@ const fs = require("fs");
 const fse = require("fs-extra");
 const process = require("child_process");
 
+console.log('building layers...')
+
+// ensure layers directory created
+fs.mkdirSync('layers/src', {recursive: true});
 // get layers' src directories
 let srcdirs = fs.readdirSync('layers/src', { withFileTypes: true })
     .filter(dirent => dirent.isDirectory())
@@ -15,7 +19,7 @@ let srcdirs = fs.readdirSync('layers/src', { withFileTypes: true })
 
 for (let i in srcdirs) {
     let layer = srcdirs[i];
-    console.log(`processing ${layer}...`);
+    console.log(`\nprocessing ${layer}...`);
 
     let layerSrcPath = `layers/src/${layer}`
     let layerBuildPath = `layers/build/${layer}/nodejs`

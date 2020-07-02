@@ -59,7 +59,7 @@ Lambda functions are defined in the `handlers` directory, and include the follow
 
 - `simple`: a stateless function
 - `layer`: a function that uses packages in a lambda layer
-- `documentdb`: a function with handlers for storing and retrieving data
+- `dynamodb`: a function with handlers for storing and retrieving data
   - NOTE: `timeToLiveAttribute` has been used in the example to set a TTL on
     test data. Remove this attribute for persistent data.
 
@@ -79,6 +79,8 @@ Lambda functions MUST return responses in the following format:
 Layers are composite packages that multiple lambda functions can reference.
 
 To create a layer, simply add a `<layer name>` folder in the `layers/src` directory that includes a `package.json` file. When the `npm run build` command is run, the packages are installed and the layer archive is produced and copied into the `layers/build` directory.
+
+WARNING: A lambda function can use a maximum of 5 layers and be a maximum of 250MB unzipped.
 
 ##### Custom Lambda Layer Modules
 

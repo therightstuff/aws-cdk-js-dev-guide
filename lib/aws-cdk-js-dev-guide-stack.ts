@@ -2,6 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import { RestApi, LambdaIntegration } from '@aws-cdk/aws-apigateway';
 import { Table, AttributeType, BillingMode } from '@aws-cdk/aws-dynamodb';
 import { Function, Runtime, Code, LayerVersion } from '@aws-cdk/aws-lambda';
+import { Duration } from '@aws-cdk/core';
 
 export class AwsStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -16,6 +17,7 @@ export class AwsStack extends cdk.Stack {
         HELLO: "Hello",
         WORLD: "World"
       },
+      timeout: Duration.seconds(2)
     });
 
     const simpleApi = new RestApi(this, 'simple-api', {

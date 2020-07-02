@@ -9,10 +9,8 @@ node_modules
 .cdk.staging
 cdk.out
 
-# synthesized output
-template.yaml
-
 # Parcel build directories
 .cache
 .build
 layers/build/*
+layers/**/package-lock.json

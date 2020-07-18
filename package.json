@@ -7,10 +7,12 @@
   "scripts": {
     "lint": "eslint . --ignore-path .gitignore",
     "build": "npm run lint && node build-layers && tsc",
+    "build-no-layers": "npm run lint && tsc",
     "watch": "tsc -w",
     "test-units": "jest",
     "cdk": "cdk",
-    "synth": "npm run build && cdk synth"
+    "synth": "npm run build && cdk synth",
+    "synth-no-layers": "npm run build-no-layers && cdk synth"
   },
   "repository": {
     "type": "git",
@@ -23,14 +25,14 @@
   },
   "homepage": "https://github.com/therightstuff/aws-cdk-js-dev-guide#readme",
   "dependencies": {
-    "@aws-cdk/assert": "1.46.0",
-    "@aws-cdk/aws-apigateway": "^1.46.0",
-    "@aws-cdk/aws-dynamodb": "^1.46.0",
-    "@aws-cdk/aws-lambda": "^1.46.0",
-    "@aws-cdk/core": "1.46.0",
+    "@aws-cdk/assert": "latest",
+    "@aws-cdk/aws-apigateway": "latest",
+    "@aws-cdk/aws-dynamodb": "latest",
+    "@aws-cdk/aws-lambda": "latest",
+    "@aws-cdk/core": "latest",
     "@types/jest": "^25.2.1",
     "@types/node": "10.17.5",
-    "aws-cdk": "1.46.0",
+    "aws-cdk": "latest",
     "aws-sdk": "^2.701.0",
     "eslint": "^7.3.1",
     "fs-extra": "^9.0.1",

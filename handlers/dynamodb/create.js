@@ -25,23 +25,22 @@ exports.handler = async (event) => {
             }));
         }
 
-        // update existing object
-        dynamodb.update({
+        // add a new object to the table
+        let newId = uuid();
+        dynamodb.put({
             TableName: TABLE_NAME,
-            Key: {
-                "id": event.pathParameters.objectId
-            },
-            UpdateExpression: "set payload = :p, expiration = :x",
-            ExpressionAttributeValues:{
-                ":p": payload,
-                ":x": getExpirationTime()
+            Item: {
+                "id": newId,
+                "payload": payload,
+                "expiration": getExpirationTime()
             }
         }).promise()
         .then(() => {
             resolve(utils.createResponse({
                 "statusCode": 200,
                 "body": {
-                    "success": true
+                    "success": true,
+                    "id": newId
                 }
             }));
         })

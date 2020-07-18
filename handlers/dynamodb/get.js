@@ -6,14 +6,19 @@ const TABLE_NAME = process.env.TABLE_NAME;
 
 exports.handler = async (event) => {
     const promise = new Promise((resolve, reject) => {
-        // scan the table for unexpired results
-        dynamodb.scan({
-            TableName: TABLE_NAME
+        // get the requested object
+        console.log(`looking up ${event.pathParameters.objectId}`);
+        console.log("querystring parameters:", event.queryStringParameters);
+        dynamodb.get({
+            TableName: TABLE_NAME,
+            Key: {
+                "id": event.pathParameters.objectId
+            }
         }).promise()
-        .then((data) => {
+        .then(result => {
             resolve(utils.createResponse({
                 "statusCode": 200,
-                "body": data.Items
+                "body": result.Item
             }));
         })
         .catch((err) => {

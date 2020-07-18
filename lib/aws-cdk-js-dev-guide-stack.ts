@@ -61,6 +61,18 @@ export class AwsStack extends cdk.Stack {
       timeToLiveAttribute: 'expiration'
     });
 
+    const dynamodbGetFunction = new Function(this, 'dynamodb-function-get', {
+      runtime: Runtime.NODEJS_12_X,
+      handler: 'get.handler',
+      code: Code.asset('./handlers/dynamodb'),
+      environment: {
+        TABLE_NAME: dynamodbTable.tableName
+      },
+      layers: [layer],
+    });
+
+    dynamodbTable.grantReadData(dynamodbGetFunction);
+
     const dynamodbScanFunction = new Function(this, 'dynamodb-function-scan', {
       runtime: Runtime.NODEJS_12_X,
       handler: 'scan.handler',
@@ -72,6 +84,18 @@ export class AwsStack extends cdk.Stack {
     });
 
     dynamodbTable.grantReadData(dynamodbScanFunction);
+
+    const dynamodbCreateFunction = new Function(this, 'dynamodb-function-create', {
+      runtime: Runtime.NODEJS_12_X,
+      handler: 'create.handler',
+      code: Code.asset('./handlers/dynamodb'),
+      environment: {
+        TABLE_NAME: dynamodbTable.tableName
+      },
+      layers: [layer],
+    });
+
+    dynamodbTable.grantWriteData(dynamodbCreateFunction);
 
     const dynamodbUpdateFunction = new Function(this, 'dynamodb-function-update', {
       runtime: Runtime.NODEJS_12_X,
@@ -85,10 +109,22 @@ export class AwsStack extends cdk.Stack {
 
     dynamodbTable.grantWriteData(dynamodbUpdateFunction);
 
+    // Configure RESTful API
     const dynamodbApi = new RestApi(this, 'dynamodb-api');
 
-    dynamodbApi.root.addMethod('GET', new LambdaIntegration(dynamodbScanFunction));
-    dynamodbApi.root.addMethod('POST', new LambdaIntegration(dynamodbUpdateFunction));
-    dynamodbApi.root.addMethod('PUT', new LambdaIntegration(dynamodbUpdateFunction));
+    // /objects
+    // https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/prod/objects
+    let apiObjects = dynamodbApi.root.addResource('objects');
+    // GET /objects : list all objects
+    apiObjects.addMethod('GET', new LambdaIntegration(dynamodbScanFunction));
+    // POST /objects : add a new object
+    apiObjects.addMethod('POST', new LambdaIntegration(dynamodbCreateFunction));
+
+    // objects/{id}
+    let apiObjectsObject = apiObjects.addResource("{objectId}")
+    // GET /objects/{id} : get object with specified id
+    apiObjectsObject.addMethod('GET', new LambdaIntegration(dynamodbGetFunction));
+    // PUT /objects/{id} : update object with specified id
+    apiObjectsObject.addMethod('PUT', new LambdaIntegration(dynamodbUpdateFunction));
   }
 }

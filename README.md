@@ -92,6 +92,14 @@ While there's no problem with storing your layer's custom modules in its root, e
 
 To prevent this from happening, it's recommended to put custom modules in a subfolder with the same name as the layer eg. `layers/src/sample-layer/sample-layer/utils.js`. Not only does this prevent overwriting, but referencing the modules from your lambda functions becomes clearer as `require('/opt/nodejs/utils')` becomes `require('/opt/nodejs/sample-layer/utils')`.
 
+#### API Gateway Integrations
+
+When you create a `RestApi` object, the `.root` resource defaults to `/prod/`. You can add HTTP method handlers to the root, or add resource objects and add method handlers to those. To add a resource parameter, simply add a resource enclosed in curly braces (`{}`) and this will be accessible in the `event` object as `event.pathParameters`.
+
+Querystring parameters will be available in the `event` object as `event.queryStringParameters`.
+
+NOTE: it is not possible to rename a path parameter, as cdk will attempt to deploy the new resource before removing the old one and it cannot deploy two resources with the same path structure. The workaround suggested on [the serverless issue thread](https://github.com/serverless/serverless/issues/3785) is to comment out the resource definition, deploy, the uncomment it and deploy again.
+
 ### Deployment
 
 By default, CDK deploys stacks that are [environment-agnostic](https://docs.aws.amazon.com/cdk/latest/guide/environments.html). To enable environment-agnostic deployments, run `cdk bootstrap` before `cdk deploy`, but configuring specific regions is probably the safer practice.

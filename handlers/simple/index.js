@@ -4,7 +4,8 @@ exports.handler = async (event) => {
         let success = Math.floor(Math.random() * 2) == 1;
         let statusCode = (success ? 200 : 500)
         let returnObject = {
-            "success": success
+            "success": success,
+            "querystring": event.queryStringParameters
         };
 
         resolve({

@@ -8,7 +8,6 @@ exports.handler = async (event) => {
     const promise = new Promise((resolve, reject) => {
         // get the requested object
         console.log(`looking up ${event.pathParameters.objectId}`);
-        console.log("querystring parameters:", event.queryStringParameters);
         dynamodb.get({
             TableName: TABLE_NAME,
             Key: {

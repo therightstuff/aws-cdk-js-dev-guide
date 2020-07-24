@@ -1,16 +1,19 @@
 const aws = require('aws-sdk');
 const dynamodb = new aws.DynamoDB.DocumentClient();
+const sqs = new aws.SQS();
 const utils = require('/opt/nodejs/sample-layer/utils');
 const uuid = require('uuid').v4;
 
+const QUEUE_URL = process.env.QUEUE_URL;
 const TABLE_NAME = process.env.TABLE_NAME;
+
 const TTL_IN_SECONDS = 60;
 
 function getExpirationTime() {
     return Math.floor(Date.now() / 1000) + TTL_IN_SECONDS;
 }
 
-exports.handler = async (event) => {
+exports.publish = async (event) => {
     const promise = new Promise((resolve, reject) => {
         let payload = null;
         try {
@@ -25,16 +28,21 @@ exports.handler = async (event) => {
             }));
         }
 
-        // add a new object to the table
+        // create the new message object
         let newId = uuid();
-        dynamodb.put({
-            TableName: TABLE_NAME,
-            Item: {
+        const params = {
+            QueueUrl: QUEUE_URL,
+            // MessageBody must be a string
+            MessageBody: JSON.stringify({
                 "id": newId,
                 "payload": payload,
                 "expiration": getExpirationTime()
-            }
-        }).promise()
+            })
+        };
+
+        // push the message object to the queue
+        console.log(`publishing object ${newId}`);
+        sqs.sendMessage(params).promise()
         .then(() => {
             resolve(utils.createResponse({
                 "statusCode": 200,
@@ -57,4 +65,23 @@ exports.handler = async (event) => {
         });
     });
     return promise;
+}
+
+exports.subscribe = async (event) => {
+    for (let record of event.Records) {
+        const obj = JSON.parse(record.body);
+        console.log(`processing object ${obj.id}`);
+
+        try {
+            // put must be called synchronously or it
+            // will be killed as the function ends
+            await dynamodb.put({
+                TableName: TABLE_NAME,
+                Item: obj
+            }).promise();
+            console.log(`item ${obj.id} stored`);
+        } catch (err) {
+            console.error(err);
+        }
+    }
 }

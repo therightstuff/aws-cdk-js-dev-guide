@@ -2,6 +2,8 @@ import * as cdk from '@aws-cdk/core';
 import { RestApi, LambdaIntegration } from '@aws-cdk/aws-apigateway';
 import { Table, AttributeType, BillingMode } from '@aws-cdk/aws-dynamodb';
 import { Function, Runtime, Code, LayerVersion } from '@aws-cdk/aws-lambda';
+import { Queue } from '@aws-cdk/aws-sqs';
+import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import { Duration } from '@aws-cdk/core';
 
 export class AwsStack extends cdk.Stack {
@@ -46,14 +48,15 @@ export class AwsStack extends cdk.Stack {
       runtime: Runtime.NODEJS_12_X,
       handler: 'index.handler',
       code: Code.asset('./handlers/layer'),
-      layers: [layer],
+      layers: [layer]
     });
 
     const layerApi = new RestApi(this, 'layer-api');
 
     layerApi.root.addMethod('GET', new LambdaIntegration(layerFunction));
 
-    // dynamodb test function
+    // dynamodb table and functions
+
     // NOTE: remove timeToLiveAttribute if you don't want to set a TTL for the data
     const dynamodbTable = new Table(this, 'dynamodb-table', {
       partitionKey: { name: 'id', type: AttributeType.STRING },
@@ -68,7 +71,7 @@ export class AwsStack extends cdk.Stack {
       environment: {
         TABLE_NAME: dynamodbTable.tableName
       },
-      layers: [layer],
+      layers: [layer]
     });
 
     dynamodbTable.grantReadData(dynamodbGetFunction);
@@ -80,10 +83,12 @@ export class AwsStack extends cdk.Stack {
       environment: {
         TABLE_NAME: dynamodbTable.tableName
       },
-      layers: [layer],
+      layers: [layer]
     });
 
     dynamodbTable.grantReadData(dynamodbScanFunction);
+    // create reusable lambda integration
+    let dynamodbScanFunctionIntegration = new LambdaIntegration(dynamodbScanFunction);
 
     const dynamodbCreateFunction = new Function(this, 'dynamodb-function-create', {
       runtime: Runtime.NODEJS_12_X,
@@ -92,7 +97,7 @@ export class AwsStack extends cdk.Stack {
       environment: {
         TABLE_NAME: dynamodbTable.tableName
       },
-      layers: [layer],
+      layers: [layer]
     });
 
     dynamodbTable.grantWriteData(dynamodbCreateFunction);
@@ -104,7 +109,7 @@ export class AwsStack extends cdk.Stack {
       environment: {
         TABLE_NAME: dynamodbTable.tableName
       },
-      layers: [layer],
+      layers: [layer]
     });
 
     dynamodbTable.grantWriteData(dynamodbUpdateFunction);
@@ -116,7 +121,7 @@ export class AwsStack extends cdk.Stack {
     // https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/prod/objects
     let apiObjects = dynamodbApi.root.addResource('objects');
     // GET /objects : list all objects
-    apiObjects.addMethod('GET', new LambdaIntegration(dynamodbScanFunction));
+    apiObjects.addMethod('GET', dynamodbScanFunctionIntegration);
     // POST /objects : add a new object
     apiObjects.addMethod('POST', new LambdaIntegration(dynamodbCreateFunction));
 
@@ -126,5 +131,49 @@ export class AwsStack extends cdk.Stack {
     apiObjectsObject.addMethod('GET', new LambdaIntegration(dynamodbGetFunction));
     // PUT /objects/{id} : update object with specified id
     apiObjectsObject.addMethod('PUT', new LambdaIntegration(dynamodbUpdateFunction));
+
+    // sqs queue and functions
+
+    const sqsQueue = new Queue(this, 'sqs-queue');
+
+    const queuePublishFunction = new Function(this, 'queue-function-publish', {
+      runtime: Runtime.NODEJS_12_X,
+      handler: 'index.publish',
+      code: Code.asset('./handlers/sqs'),
+      environment: {
+        QUEUE_URL: sqsQueue.queueUrl,
+        TABLE_NAME: dynamodbTable.tableName
+      },
+      layers: [layer]
+    });
+
+    sqsQueue.grantSendMessages(queuePublishFunction);
+
+    const queueSubscribeFunction = new Function(this, 'queue-function-subscribe', {
+      runtime: Runtime.NODEJS_12_X,
+      handler: 'index.subscribe',
+      code: Code.asset('./handlers/sqs'),
+      environment: {
+        QUEUE_URL: sqsQueue.queueUrl,
+        TABLE_NAME: dynamodbTable.tableName
+      },
+      layers: [layer]
+    });
+
+    let queueEventSource = new SqsEventSource(sqsQueue, {
+      batchSize: 10 // default
+    });
+
+    queueSubscribeFunction.addEventSource(queueEventSource);
+
+    dynamodbTable.grantWriteData(queueSubscribeFunction);
+
+    // sqs api
+    const sqsApi = new RestApi(this, 'sqs-api');
+
+    sqsApi.root.addMethod('POST', new LambdaIntegration(queuePublishFunction));
+
+    // reuse dynamodb scan function
+    sqsApi.root.addMethod('GET', dynamodbScanFunctionIntegration);
   }
 }

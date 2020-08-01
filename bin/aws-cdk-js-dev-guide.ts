@@ -3,6 +3,7 @@ import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
 import { AwsStack } from '../lib/aws-cdk-js-dev-guide-stack';
 import regionsJson from '../lib/regions.json';
+import stagesJson from '../lib/stages.json';
 
 const app = new cdk.App();
 
@@ -19,13 +20,9 @@ type stagesType = {
     [key: string]: string[]
 }
 
-// this configuration results in the creation of AwsStack-dev,
+// the sample configuration results in the creation of AwsStack-dev,
 // AwsStack-prod-za, AwsStack-test-eu and AwsStack-test-za
-let stages:stagesType = {
-    prod: ["za"],
-    test: ["eu", "za"],
-    dev: [""]
-}
+let stages:stagesType = stagesJson;
 
 for (let name in stages) {
     let stage:string[] = stages[name];

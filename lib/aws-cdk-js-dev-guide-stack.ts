@@ -1,6 +1,8 @@
 import * as cdk from '@aws-cdk/core';
 import { RestApi, LambdaIntegration } from '@aws-cdk/aws-apigateway';
 import { Table, AttributeType, BillingMode } from '@aws-cdk/aws-dynamodb';
+import { Rule, Schedule } from '@aws-cdk/aws-events';
+import { LambdaFunction } from '@aws-cdk/aws-events-targets';
 import { Function, Runtime, Code, LayerVersion } from '@aws-cdk/aws-lambda';
 import { Queue } from '@aws-cdk/aws-sqs';
 import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
@@ -10,7 +12,10 @@ export class AwsStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // simple test function
+    // ************************************************************************
+    // ************************ simple lambda function ************************
+    // ************************************************************************
+
     const simpleFunction = new Function(this, 'simple-function', {
       runtime: Runtime.NODEJS_12_X,
       handler: 'index.handler',
@@ -34,7 +39,10 @@ export class AwsStack extends cdk.Stack {
       }
     ));
 
-    // layer
+    // ************************************************************************
+    // ********************* layer definition and usage ***********************
+    // ************************************************************************
+
     const layer = new LayerVersion(this, 'sample-layer', {
       // Code.fromAsset must reference the build folder
       code: Code.fromAsset('./layers/build/sample-layer'),
@@ -55,7 +63,9 @@ export class AwsStack extends cdk.Stack {
 
     layerApi.root.addMethod('GET', new LambdaIntegration(layerFunction));
 
-    // dynamodb table and functions
+    // ************************************************************************
+    // ****************** dynamodb table and functions ************************
+    // ************************************************************************
 
     // NOTE: remove timeToLiveAttribute if you don't want to set a TTL for the data
     const dynamodbTable = new Table(this, 'dynamodb-table', {
@@ -132,7 +142,9 @@ export class AwsStack extends cdk.Stack {
     // PUT /objects/{id} : update object with specified id
     apiObjectsObject.addMethod('PUT', new LambdaIntegration(dynamodbUpdateFunction));
 
-    // sqs queue and functions
+    // ************************************************************************
+    // ******************** sqs queue and functions ***************************
+    // ************************************************************************
 
     const sqsQueue = new Queue(this, 'sqs-queue');
 
@@ -175,5 +187,29 @@ export class AwsStack extends cdk.Stack {
 
     // reuse dynamodb scan function
     sqsApi.root.addMethod('GET', dynamodbScanFunctionIntegration);
+
+    // ************************************************************************
+    // ************************ scheduled function ****************************
+    // ************************************************************************
+
+    const scheduledFunction = new Function(this, 'scheduled-function', {
+      runtime: Runtime.NODEJS_12_X,
+      handler: 'index.handler',
+      code: Code.asset('./handlers/scheduled'),
+      timeout: Duration.seconds(2)
+    });
+
+    // configure rule for a scheduled function
+    // recommended period for warming up functions is 15 minutes
+    const rule = new Rule(this, `scheduled-function-rule`, {
+      schedule: Schedule.rate(Duration.minutes(15))
+    });
+
+    // CAUTION: uncommenting this line will cause the lambda function
+    //          to be invoked at the specified interval. If not actually
+    //          required it's bad form to leave it running: aside from
+    //          potential cost to you, it's also a waste of resources
+    //          others might need.
+    //rule.addTarget(new LambdaFunction(scheduledFunction));
   }
 }

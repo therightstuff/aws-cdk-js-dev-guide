@@ -106,7 +106,7 @@ By default, CDK deploys stacks that are [environment-agnostic](https://docs.aws.
 
 To deploy to specific regions, update the `bin/regions.json` file with the desired region and account numbers.
 
-An example for stack configuration has been provided in `bin/aws-cdk-js-dev-guide.ts`.
+An example for stack configuration has been provided in `lib/stages.json`.
 
 To deploy a stack, `cdk deploy <stack name>` (wildcards are supported).
 

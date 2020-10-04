@@ -172,6 +172,14 @@ export class AwsStack extends cdk.Stack {
       layers: [layer]
     });
 
+    // WARNING: unlike the rest of the serverless resources, setting up an
+    //          SQS queue event listener incurs costs even when there's no
+    //          activity (something in the order of 50 cents/month). From
+    //          https://aws.amazon.com/blogs/aws/aws-lambda-adds-amazon-simple-queue-service-to-supported-event-sources/
+    //    "There are no additional charges for this feature, but because the
+    //     Lambda service is continuously long-polling the SQS queue the
+    //     account will be charged for those API calls at the standard SQS
+    //     pricing rates."
     let queueEventSource = new SqsEventSource(sqsQueue, {
       batchSize: 10 // default
     });

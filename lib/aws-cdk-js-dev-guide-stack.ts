@@ -69,7 +69,7 @@ export class AwsStack extends cdk.Stack {
 
     // If you're note already familiar with DynamoDB's reserved keywords, it's
     // worth checking your attribute names against
-    // [this list](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html).
+    // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html.
     // NOTE: remove timeToLiveAttribute if you don't want to set a TTL for the data
     const dynamodbTable = new Table(this, 'dynamodb-table', {
       partitionKey: { name: 'id', type: AttributeType.STRING },
@@ -128,6 +128,7 @@ export class AwsStack extends cdk.Stack {
     dynamodbTable.grantWriteData(dynamodbUpdateFunction);
 
     // RESTful API CORS options object
+    // see https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigateway.CorsOptions.html
     let corsOptions = {
       allowOrigins: Cors.ALL_ORIGINS,
       allowMethods: Cors.ALL_METHODS,

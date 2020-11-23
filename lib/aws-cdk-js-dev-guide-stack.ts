@@ -127,17 +127,27 @@ export class AwsStack extends cdk.Stack {
 
     dynamodbTable.grantWriteData(dynamodbUpdateFunction);
 
+    // RESTful API CORS options object
+    let corsOptions = {
+      allowOrigins: Cors.ALL_ORIGINS,
+      allowMethods: Cors.ALL_METHODS,
+    };
+
     // Configure RESTful API
+    // If set, defaultCorsPreflightOptions will apply to all child
+    // resources
     const dynamodbApi = new RestApi(this, 'dynamodb-api', {
-      defaultCorsPreflightOptions: {
-        allowOrigins: Cors.ALL_ORIGINS,
-        allowMethods: Cors.ALL_METHODS
-      }
+      defaultCorsPreflightOptions: corsOptions
     });
 
     // /objects
     // https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/prod/objects
     let apiObjects = dynamodbApi.root.addResource('objects');
+
+    // If not already set by a parent's defaultCorsPreflightOptions,
+    // uncomment this to enable cors on a specific api resource
+    // apiObjects.addCorsPreflight(corsOptions);
+
     // GET /objects : list all objects
     apiObjects.addMethod('GET', dynamodbScanFunctionIntegration);
     // POST /objects : add a new object
@@ -145,6 +155,7 @@ export class AwsStack extends cdk.Stack {
 
     // objects/{id}
     let apiObjectsObject = apiObjects.addResource("{objectId}")
+
     // GET /objects/{id} : get object with specified id
     apiObjectsObject.addMethod('GET', new LambdaIntegration(dynamodbGetFunction));
     // PUT /objects/{id} : update object with specified id

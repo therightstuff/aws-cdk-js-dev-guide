@@ -1,0 +1,54 @@
+<html>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script language="javascript">
+        let url = localStorage.url;
+        function request(method, data, result) {
+            $.ajax({
+                type: method,
+                url: url,
+                data: data,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(data){
+                    $(result).text(data);
+                },
+                error: function(errMsg) {
+                    $(result).text(errMsg);
+                }
+            });
+        }
+        function create() {
+            // POST /prod/objects
+            url = $('#url').val();
+            if (!url || url.length == 0) {
+                alert('URL endpoint required');
+            }
+            localStorage.url = url;
+            request("POST", $("#createBody").text(), "createResponse");
+        }
+        $(function () {
+            if (url) {
+                $('#url').val(url);
+            }
+        });
+    </script>
+    <body align="center">
+        <h1>DynamoDB samples</h1>
+        Endpoint URL: <input id="url" type="text" />
+        <br />
+        <table align="center">
+            <tr><td><h2>Create</h2></td></tr>
+            <tr>
+                <td>JSON request body:</td>
+                <td><textarea id="createBody"></textarea></td>
+            </tr>
+            <tr>
+                <td colspan="2" align="center"><button id="create" onclick="create()">Create</button></td>
+            </tr>
+            <tr>
+                <td>Response:</td>
+                <td><textarea id="createResponse"></textarea></td>
+            </tr>
+        </table>
+    </body>
+</html>

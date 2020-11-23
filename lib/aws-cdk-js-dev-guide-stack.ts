@@ -1,5 +1,5 @@
 import * as cdk from '@aws-cdk/core';
-import { RestApi, LambdaIntegration } from '@aws-cdk/aws-apigateway';
+import { RestApi, LambdaIntegration, Cors } from '@aws-cdk/aws-apigateway';
 import { Table, AttributeType, BillingMode } from '@aws-cdk/aws-dynamodb';
 import { Rule, Schedule } from '@aws-cdk/aws-events';
 import { LambdaFunction } from '@aws-cdk/aws-events-targets';
@@ -67,6 +67,9 @@ export class AwsStack extends cdk.Stack {
     // ****************** dynamodb table and functions ************************
     // ************************************************************************
 
+    // If you're note already familiar with DynamoDB's reserved keywords, it's
+    // worth checking your attribute names against
+    // [this list](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html).
     // NOTE: remove timeToLiveAttribute if you don't want to set a TTL for the data
     const dynamodbTable = new Table(this, 'dynamodb-table', {
       partitionKey: { name: 'id', type: AttributeType.STRING },
@@ -125,7 +128,12 @@ export class AwsStack extends cdk.Stack {
     dynamodbTable.grantWriteData(dynamodbUpdateFunction);
 
     // Configure RESTful API
-    const dynamodbApi = new RestApi(this, 'dynamodb-api');
+    const dynamodbApi = new RestApi(this, 'dynamodb-api', {
+      defaultCorsPreflightOptions: {
+        allowOrigins: Cors.ALL_ORIGINS,
+        allowMethods: Cors.ALL_METHODS
+      }
+    });
 
     // /objects
     // https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/prod/objects

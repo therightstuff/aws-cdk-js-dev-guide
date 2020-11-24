@@ -13,6 +13,11 @@ function getExpirationTime() {
     return Math.floor(Date.now() / 1000) + TTL_IN_SECONDS;
 }
 
+let corsHeaders = {
+    'Access-Control-Allow-Origin': process.env.CORS_ORIGIN,
+    'Access-Control-Allow-Credentials': true,
+};
+
 exports.publish = async (event) => {
     const promise = new Promise((resolve, reject) => {
         let payload = null;
@@ -21,6 +26,7 @@ exports.publish = async (event) => {
         } catch (err) {
             return resolve(utils.createResponse({
                 "statusCode": 400,
+                "headers": corsHeaders,
                 "body": {
                     "success": false,
                     "reason": "unable to parse request body, expected valid JSON format"
@@ -46,6 +52,7 @@ exports.publish = async (event) => {
         .then(() => {
             resolve(utils.createResponse({
                 "statusCode": 200,
+                "headers": corsHeaders,
                 "body": {
                     "success": true,
                     "id": newId
@@ -56,6 +63,7 @@ exports.publish = async (event) => {
             console.error(err);
             resolve(utils.createResponse({
                 "statusCode": 500,
+                "headers": corsHeaders,
                 "body": {
                     "success": false,
                     "reason": "an unexpected error occurred",

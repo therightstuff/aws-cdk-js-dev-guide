@@ -9,8 +9,21 @@ import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import { Duration } from '@aws-cdk/core';
 
 export class AwsStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps, corsOrigin?: string) {
     super(scope, id, props);
+
+    // set default CORS origin to ALL_ORIGINS
+    corsOrigin = corsOrigin || "*";
+    // make the stack's CORS origin available to lambdas as an environment variable
+    let corsEnvironment = {
+      CORS_ORIGIN: corsOrigin
+    };
+
+    // reusable RESTful API CORS options object
+    let corsOptions = {
+      allowOrigins: [ corsOrigin ], // array containing an origin, or Cors.ALL_ORIGINS
+      allowMethods: Cors.ALL_METHODS, // array of methods eg. [ 'OPTIONS', 'GET', 'POST', 'PUT', 'DELETE' ]
+    };
 
     // ************************************************************************
     // ************************ simple lambda function ************************
@@ -19,18 +32,27 @@ export class AwsStack extends cdk.Stack {
     const simpleFunction = new Function(this, 'simple-function', {
       runtime: Runtime.NODEJS_12_X,
       handler: 'index.handler',
-      code: Code.asset('./handlers/simple'),
+      code: Code.fromAsset('./handlers/simple'),
       environment: {
+        ...corsEnvironment,
         HELLO: "Hello",
         WORLD: "World"
       },
       timeout: Duration.seconds(2)
     });
 
+    // simple api
+    // to enable CORS on all resources of the api, uncomment the line
+    // beginning with defaultCorsPreflightOptions:
     const simpleApi = new RestApi(this, 'simple-api', {
       restApiName: 'Simple API sample',
-      description: "Simple API sample with no dependencies"
+      description: "Simple API sample with no dependencies",
+      // defaultCorsPreflightOptions: corsOptions
     });
+
+    // to enable CORS on just the root or any other specific resource,
+    // uncomment the following line:
+    // simpleApi.root.addCorsPreflight(corsOptions);
 
     simpleApi.root.addMethod('GET', new LambdaIntegration(
       simpleFunction,
@@ -55,11 +77,14 @@ export class AwsStack extends cdk.Stack {
     const layerFunction = new Function(this, 'layer-function', {
       runtime: Runtime.NODEJS_12_X,
       handler: 'index.handler',
-      code: Code.asset('./handlers/layer'),
+      code: Code.fromAsset('./handlers/layer'),
       layers: [layer]
     });
 
-    const layerApi = new RestApi(this, 'layer-api');
+    // layer api
+    const layerApi = new RestApi(this, 'layer-api', {
+      defaultCorsPreflightOptions: corsOptions
+    });
 
     layerApi.root.addMethod('GET', new LambdaIntegration(layerFunction));
 
@@ -80,8 +105,9 @@ export class AwsStack extends cdk.Stack {
     const dynamodbGetFunction = new Function(this, 'dynamodb-function-get', {
       runtime: Runtime.NODEJS_12_X,
       handler: 'get.handler',
-      code: Code.asset('./handlers/dynamodb'),
+      code: Code.fromAsset('./handlers/dynamodb'),
       environment: {
+        ...corsEnvironment,
         TABLE_NAME: dynamodbTable.tableName
       },
       layers: [layer]
@@ -92,8 +118,9 @@ export class AwsStack extends cdk.Stack {
     const dynamodbScanFunction = new Function(this, 'dynamodb-function-scan', {
       runtime: Runtime.NODEJS_12_X,
       handler: 'scan.handler',
-      code: Code.asset('./handlers/dynamodb'),
+      code: Code.fromAsset('./handlers/dynamodb'),
       environment: {
+        ...corsEnvironment,
         TABLE_NAME: dynamodbTable.tableName
       },
       layers: [layer]
@@ -106,8 +133,9 @@ export class AwsStack extends cdk.Stack {
     const dynamodbCreateFunction = new Function(this, 'dynamodb-function-create', {
       runtime: Runtime.NODEJS_12_X,
       handler: 'create.handler',
-      code: Code.asset('./handlers/dynamodb'),
+      code: Code.fromAsset('./handlers/dynamodb'),
       environment: {
+        ...corsEnvironment,
         TABLE_NAME: dynamodbTable.tableName
       },
       layers: [layer]
@@ -118,8 +146,9 @@ export class AwsStack extends cdk.Stack {
     const dynamodbUpdateFunction = new Function(this, 'dynamodb-function-update', {
       runtime: Runtime.NODEJS_12_X,
       handler: 'update.handler',
-      code: Code.asset('./handlers/dynamodb'),
+      code: Code.fromAsset('./handlers/dynamodb'),
       environment: {
+        ...corsEnvironment,
         TABLE_NAME: dynamodbTable.tableName
       },
       layers: [layer]
@@ -127,16 +156,7 @@ export class AwsStack extends cdk.Stack {
 
     dynamodbTable.grantWriteData(dynamodbUpdateFunction);
 
-    // RESTful API CORS options object
-    // see https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigateway.CorsOptions.html
-    let corsOptions = {
-      allowOrigins: Cors.ALL_ORIGINS,
-      allowMethods: Cors.ALL_METHODS,
-    };
-
-    // Configure RESTful API
-    // If set, defaultCorsPreflightOptions will apply to all child
-    // resources
+    // dynamodb api
     const dynamodbApi = new RestApi(this, 'dynamodb-api', {
       defaultCorsPreflightOptions: corsOptions
     });
@@ -144,10 +164,6 @@ export class AwsStack extends cdk.Stack {
     // /objects
     // https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/prod/objects
     let apiObjects = dynamodbApi.root.addResource('objects');
-
-    // If not already set by a parent's defaultCorsPreflightOptions,
-    // uncomment this to enable cors on a specific api resource
-    // apiObjects.addCorsPreflight(corsOptions);
 
     // GET /objects : list all objects
     apiObjects.addMethod('GET', dynamodbScanFunctionIntegration);
@@ -171,8 +187,9 @@ export class AwsStack extends cdk.Stack {
     const queuePublishFunction = new Function(this, 'queue-function-publish', {
       runtime: Runtime.NODEJS_12_X,
       handler: 'index.publish',
-      code: Code.asset('./handlers/sqs'),
+      code: Code.fromAsset('./handlers/sqs'),
       environment: {
+        ...corsEnvironment,
         QUEUE_URL: sqsQueue.queueUrl,
         TABLE_NAME: dynamodbTable.tableName
       },
@@ -184,7 +201,7 @@ export class AwsStack extends cdk.Stack {
     const queueSubscribeFunction = new Function(this, 'queue-function-subscribe', {
       runtime: Runtime.NODEJS_12_X,
       handler: 'index.subscribe',
-      code: Code.asset('./handlers/sqs'),
+      code: Code.fromAsset('./handlers/sqs'),
       environment: {
         QUEUE_URL: sqsQueue.queueUrl,
         TABLE_NAME: dynamodbTable.tableName
@@ -209,7 +226,9 @@ export class AwsStack extends cdk.Stack {
     dynamodbTable.grantWriteData(queueSubscribeFunction);
 
     // sqs api
-    const sqsApi = new RestApi(this, 'sqs-api');
+    const sqsApi = new RestApi(this, 'sqs-api', {
+      defaultCorsPreflightOptions: corsOptions
+    });
 
     sqsApi.root.addMethod('POST', new LambdaIntegration(queuePublishFunction));
 
@@ -223,7 +242,7 @@ export class AwsStack extends cdk.Stack {
     const scheduledFunction = new Function(this, 'scheduled-function', {
       runtime: Runtime.NODEJS_12_X,
       handler: 'index.handler',
-      code: Code.asset('./handlers/scheduled'),
+      code: Code.fromAsset('./handlers/scheduled'),
       timeout: Duration.seconds(2)
     });
 

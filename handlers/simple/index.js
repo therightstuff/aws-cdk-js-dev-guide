@@ -11,7 +11,10 @@ exports.handler = async (event) => {
         resolve({
             "isBase64Encoded": false,
             "statusCode": statusCode,
-            "headers": {},
+            "headers": {
+                'Access-Control-Allow-Origin': process.env.CORS_ORIGIN,
+                'Access-Control-Allow-Credentials': true,
+            },
             "body": JSON.stringify(returnObject)
         });
     });

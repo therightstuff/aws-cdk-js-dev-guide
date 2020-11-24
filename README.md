@@ -106,7 +106,59 @@ When you create a `RestApi` object, the `.root` resource defaults to `/prod/`. Y
 
 Querystring parameters will be available in the `event` object as `event.queryStringParameters`.
 
-NOTE: it is not possible to rename a path parameter, as cdk will attempt to deploy the new resource before removing the old one and it cannot deploy two resources with the same path structure. The workaround suggested on [the serverless issue thread](https://github.com/serverless/serverless/issues/3785) is to comment out the resource definition, deploy, the uncomment it and deploy again.
+NOTE: it is not possible to rename a path parameter, as cdk will attempt to deploy the new resource before removing the old one and it cannot deploy two resources with the same path structure. The workaround suggested on [the serverless issue thread](https://github.com/serverless/serverless/issues/3785) is to comment out the resource definition, deploy, then uncomment it and deploy again.
+
+##### CORS
+
+CORS support can be configured on a single resource, or on a resource and all of its children.
+
+In order for CORS to be allowed it must be enabled on a RestApi resource AND the appropriate headers must be returned by the lambda function it calls.
+
+`lib/aws-cdk-js-dev-guide-stack.ts`:
+
+```javascript
+
+// Enable CORS for all resources of an api
+const api = new RestApi(this, 'api-name', {
+    defaultCorsPreflightOptions: {
+        // array containing an origin, or Cors.ALL_ORIGINS
+        allowOrigins: [ corsOrigin ],
+        // array of methods eg. [ 'OPTIONS', 'GET', 'POST', 'PUT', 'DELETE' ]
+        allowMethods: Cors.ALL_METHODS,
+    }
+});
+
+// OR
+
+// Enable CORS for a specific api resource
+const api2 = new RestApi(this, 'api2-name');
+api2Objects = api2.root.addResource('objects');
+api2Objects.addCorsPreflight({
+    // array containing an origin, or Cors.ALL_ORIGINS
+    allowOrigins: [ corsOrigin ],
+    // array of methods eg. [ 'OPTIONS', 'GET', 'POST', 'PUT', 'DELETE' ]
+    allowMethods: Cors.ALL_METHODS,
+});
+
+```
+
+`handlers/myhandler/index.js`:
+
+```javascript
+resolve({
+    "isBase64Encoded": false,
+    "statusCode": 200,
+    "headers": {
+        'Access-Control-Allow-Origin': process.env.CORS_ORIGIN,
+        'Access-Control-Allow-Credentials': true,
+    },
+    "body": JSON.stringify({ "success": true })
+});
+```
+
+NOTE: This project defines an origin per stack in the `lib/stages.json` file, which requires a modification to the `AwsStack` signature. This is not at all necessary, you should configure it in any way that suits your purposes.
+
+For more details see [https://docs.aws.amazon.com/cdk/api/latest/docs/aws-apigateway-readme.html](https://docs.aws.amazon.com/cdk/api/latest/docs/aws-apigateway-readme.html) and [https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigateway.CorsOptions.html](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigateway.CorsOptions.html).
 
 ### Deployment
 

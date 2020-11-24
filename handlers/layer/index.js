@@ -6,6 +6,10 @@ exports.handler = async (event) => {
     const promise = new Promise((resolve, reject) => {
         resolve(utils.createResponse({
             "statusCode": 200,
+            "headers": {
+                'Access-Control-Allow-Origin': process.env.CORS_ORIGIN,
+                'Access-Control-Allow-Credentials': true,
+            },
             "body": {
                 "generatedId": uuid()
             }

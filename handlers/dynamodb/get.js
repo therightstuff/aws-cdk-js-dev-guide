@@ -4,6 +4,11 @@ const utils = require('/opt/nodejs/sample-layer/utils');
 
 const TABLE_NAME = process.env.TABLE_NAME;
 
+let corsHeaders = {
+    'Access-Control-Allow-Origin': process.env.CORS_ORIGIN,
+    'Access-Control-Allow-Credentials': true,
+};
+
 exports.handler = async (event) => {
     const promise = new Promise((resolve, reject) => {
         // get the requested object
@@ -17,6 +22,7 @@ exports.handler = async (event) => {
         .then(result => {
             resolve(utils.createResponse({
                 "statusCode": 200,
+                "headers": corsHeaders,
                 "body": result.Item
             }));
         })
@@ -24,6 +30,7 @@ exports.handler = async (event) => {
             console.error(err);
             resolve(utils.createResponse({
                 "statusCode": 500,
+                "headers": corsHeaders,
                 "body": {
                     "success": false,
                     "reason": "an unexpected error occurred",

@@ -13,7 +13,7 @@
     "cdk": "cdk",
     "synth": "npm run build && cdk synth",
     "synth-no-layers": "npm run build-no-layers && cdk synth",
-    "package-upgrade": "npx npm-check-updates -u"
+    "package-upgrade": "npx npm-check-updates -u && npm -g upgrade cdk"
   },
   "repository": {
     "type": "git",
@@ -26,24 +26,24 @@
   },
   "homepage": "https://github.com/therightstuff/aws-cdk-js-dev-guide#readme",
   "dependencies": {
-    "@aws-cdk/assert": "^1.62.0",
-    "@aws-cdk/aws-apigateway": "^1.62.0",
-    "@aws-cdk/aws-dynamodb": "^1.62.0",
-    "@aws-cdk/aws-events-targets": "^1.62.0",
-    "@aws-cdk/aws-lambda": "^1.62.0",
-    "@aws-cdk/aws-lambda-event-sources": "^1.62.0",
-    "@aws-cdk/core": "^1.62.0",
-    "@types/jest": "^26.0.13",
-    "@types/node": "14.6.4",
-    "archiver": "^5.0.0",
-    "aws-cdk": "^1.62.0",
-    "aws-sdk": "^2.747.0",
-    "eslint": "^7.8.1",
+    "@aws-cdk/assert": "^1.74.0",
+    "@aws-cdk/aws-apigateway": "^1.74.0",
+    "@aws-cdk/aws-dynamodb": "^1.74.0",
+    "@aws-cdk/aws-events-targets": "^1.74.0",
+    "@aws-cdk/aws-lambda": "^1.74.0",
+    "@aws-cdk/aws-lambda-event-sources": "^1.74.0",
+    "@aws-cdk/core": "^1.74.0",
+    "@types/jest": "^26.0.15",
+    "@types/node": "14.14.9",
+    "archiver": "^5.1.0",
+    "aws-cdk": "^1.74.0",
+    "aws-sdk": "^2.798.0",
+    "eslint": "^7.14.0",
     "fs-extra": "^9.0.1",
-    "jest": "^26.4.2",
+    "jest": "^26.6.3",
     "source-map-support": "^0.5.19",
-    "ts-jest": "^26.3.0",
+    "ts-jest": "^26.4.4",
     "ts-node": "^9.0.0",
-    "typescript": "~4.0.2"
+    "typescript": "~4.1.2"
   }
 }

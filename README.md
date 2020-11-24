@@ -26,7 +26,15 @@ CDK, like SAM, tends to be updated frequently with breaking changes. Prior to co
 
 ### CDK Initialization
 
-The first step to creating a CDK project is initializing it with `cdk init app`, and a CDK project cannot be initialized if the project directory isn't empty. If you would like to use an existing project (like this one) as a template, bear in mind that you will have to rename the stack in multiple locations and it would probably be safer and easier to create a new project and copy and paste in the bits you need.
+The first step to creating a CDK project is initializing it with `cdk init app`, and a CDK project cannot be initialized if the project directory isn't empty. If you would like to use an existing project (like this one) as a template, bear in mind that you will have to rename the stack in multiple locations and it would probably be safer and easier to create a new project and copy and paste in the bits you need (estimated time: 20-30 minutes if you're not familiar with the project structure).
+
+To be able to run the build scripts, execute the following command:
+
+```bash
+npm install --save eslint fs-extra archiver
+```
+
+You will also need to copy in the `.eslintc`, `.gitignore`, `.npmignore`, `build-layers.js` and `tsconfig.json` files, and the script definitions from `package.json`.
 
 ### Useful commands
 
@@ -98,7 +106,59 @@ When you create a `RestApi` object, the `.root` resource defaults to `/prod/`. Y
 
 Querystring parameters will be available in the `event` object as `event.queryStringParameters`.
 
-NOTE: it is not possible to rename a path parameter, as cdk will attempt to deploy the new resource before removing the old one and it cannot deploy two resources with the same path structure. The workaround suggested on [the serverless issue thread](https://github.com/serverless/serverless/issues/3785) is to comment out the resource definition, deploy, the uncomment it and deploy again.
+NOTE: it is not possible to rename a path parameter, as cdk will attempt to deploy the new resource before removing the old one and it cannot deploy two resources with the same path structure. The workaround suggested on [the serverless issue thread](https://github.com/serverless/serverless/issues/3785) is to comment out the resource definition, deploy, then uncomment it and deploy again.
+
+##### CORS
+
+CORS support can be configured on a single resource, or on a resource and all of its children.
+
+In order for CORS to be allowed it must be enabled on a RestApi resource AND the appropriate headers must be returned by the lambda function it calls.
+
+`lib/aws-cdk-js-dev-guide-stack.ts`:
+
+```javascript
+
+// Enable CORS for all resources of an api
+const api = new RestApi(this, 'api-name', {
+    defaultCorsPreflightOptions: {
+        // array containing an origin, or Cors.ALL_ORIGINS
+        allowOrigins: [ corsOrigin ],
+        // array of methods eg. [ 'OPTIONS', 'GET', 'POST', 'PUT', 'DELETE' ]
+        allowMethods: Cors.ALL_METHODS,
+    }
+});
+
+// OR
+
+// Enable CORS for a specific api resource
+const api2 = new RestApi(this, 'api2-name');
+api2Objects = api2.root.addResource('objects');
+api2Objects.addCorsPreflight({
+    // array containing an origin, or Cors.ALL_ORIGINS
+    allowOrigins: [ corsOrigin ],
+    // array of methods eg. [ 'OPTIONS', 'GET', 'POST', 'PUT', 'DELETE' ]
+    allowMethods: Cors.ALL_METHODS,
+});
+
+```
+
+`handlers/myhandler/index.js`:
+
+```javascript
+resolve({
+    "isBase64Encoded": false,
+    "statusCode": 200,
+    "headers": {
+        'Access-Control-Allow-Origin': process.env.CORS_ORIGIN,
+        'Access-Control-Allow-Credentials': true,
+    },
+    "body": JSON.stringify({ "success": true })
+});
+```
+
+NOTE: This project defines an origin per stack in the `lib/stages.json` file, which requires a modification to the `AwsStack` signature. This is not at all necessary, you should configure it in any way that suits your purposes.
+
+For more details see [https://docs.aws.amazon.com/cdk/api/latest/docs/aws-apigateway-readme.html](https://docs.aws.amazon.com/cdk/api/latest/docs/aws-apigateway-readme.html) and [https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigateway.CorsOptions.html](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigateway.CorsOptions.html).
 
 ### Deployment
 

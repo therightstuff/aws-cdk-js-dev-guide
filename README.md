@@ -26,7 +26,7 @@ CDK, like SAM, tends to be updated frequently with breaking changes. Prior to co
 
 ### CDK Initialization
 
-The first step to creating a CDK project is initializing it with `cdk init app`, and a CDK project cannot be initialized if the project directory isn't empty. If you would like to use an existing project (like this one) as a template, bear in mind that you will have to rename the stack in multiple locations and it would probably be safer and easier to create a new project and copy and paste in the bits you need (estimated time: 20-30 minutes if you're not familiar with the project structure).
+The first step to creating a CDK project is initializing it with `cdk init app` (eg. `cdk init app --language typescript`), and a CDK project cannot be initialized if the project directory isn't empty. If you would like to use an existing project (like this one) as a template, bear in mind that you will have to rename the stack in multiple locations and it would probably be safer and easier to create a new project and copy and paste in the bits you need (estimated time: 20-30 minutes if you're not familiar with the project structure).
 
 To be able to run the build scripts, execute the following command:
 

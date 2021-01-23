@@ -31,7 +31,7 @@ The first step to creating a CDK project is initializing it with `cdk init app` 
 To be able to run the build scripts, execute the following command:
 
 ```bash
-npm install --save eslint fs-extra archiver
+npm install --save eslint fs-extra
 ```
 
 You will also need to copy in the `.eslintc`, `.gitignore`, `.npmignore`, `build-layers.js` and `tsconfig.json` files, and the script definitions from `package.json`.

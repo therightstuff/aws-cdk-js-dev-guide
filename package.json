@@ -35,7 +35,6 @@
     "@aws-cdk/core": "^1.86.0",
     "@types/jest": "^26.0.20",
     "@types/node": "14.14.22",
-    "archiver": "^5.2.0",
     "aws-cdk": "^1.86.0",
     "aws-sdk": "^2.831.0",
     "eslint": "^7.18.0",

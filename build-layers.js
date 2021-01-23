@@ -11,7 +11,8 @@ console.log('building layers...')
 
 // ensure layers directory created
 fs.mkdirSync('layers/src', {recursive: true});
-fs.rmdirSync('layers/build', { recursive: true })
+console.log(`deleting previous build directories...`);
+fs.rmSync('layers/build', { recursive: true, force: true });
 
 // get layers' src directories
 let srcdirs = fs.readdirSync('layers/src', { withFileTypes: true })
@@ -20,13 +21,11 @@ let srcdirs = fs.readdirSync('layers/src', { withFileTypes: true })
 
 for (let i in srcdirs) {
     let layer = srcdirs[i];
-    console.log(`processing layer ${layer}...`);
+    console.log(`\nprocessing layer ${layer}...`);
 
     let layerSrcPath = `layers/src/${layer}`
     let layerBuildPath = `layers/build/${layer}/nodejs`
 
-    console.log(`deleting previous build directory...`);
-    fs.rmSync(layerBuildPath, { recursive: true, force: true });
     console.log(`(re)creating build directory...`);
     fs.mkdirSync(layerBuildPath, { recursive: true });
 

@@ -1,5 +1,6 @@
 {
   "name": "aws-cdk-js-dev-guide",
+  "description": "A guide for AWS CDK development using TypeScript and Javascript",
   "version": "0.1.0",
   "bin": {
     "aws-cdk-js-dev-guide-dev": "bin/aws-cdk-js-dev-guide.js"

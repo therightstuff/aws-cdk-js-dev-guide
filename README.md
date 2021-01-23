@@ -8,7 +8,7 @@ This was initially an attempt to create a simple way to define, build, test and 
 
 The only real way to test locally would be to recreate the invoked lambda's context manually, which has proved too costly for too little benefit. If you're interested in seeing my efforts in that direction, I've left the `feature/adding-lambdas` branch up for reference (although that's only partial, the functional code for actually running the lambdas in a separate project and I'm not sure it's worth bringing in here - shoot me a message if you're really interested).
 
-## Tooling setup for local AWS development
+## Tooling setup for AWS development
 
 ### Preamble
 
@@ -34,14 +34,28 @@ To be able to run the build scripts, execute the following command:
 npm install --save eslint fs-extra
 ```
 
-You will also need to copy in the `.eslintc`, `.gitignore`, `.npmignore`, `build-layers.js` and `tsconfig.json` files, and the script definitions from `package.json`.
+Copy the following as-is to your new project:
+
+```text
+- /aws-cdk-js-dev-guide
+|- `.eslintc`
+|- `.gitignore`
+|- `.npmignore`
+|- `build-layers.js`
+|- `tsconfig.json`
+|- `/lib`
+    |- `regions.json`
+    |- `stages.json`
+```
+
+Additionally, you will need to copy the npm script definitions from `package.json` and the `bin/aws-cdk-js-dev-guide.ts` (with the stack name modified to match your new project).
 
 ### Useful commands
 
 - `npm run build`   build layers and compile typescript to js
+- `npm run synth`   perform build steps then synthesize the CloudFormation template(s)
 - `cdk deploy`      deploy this stack to your default AWS account/region
 - `cdk diff`        compare deployed stack with current state
-- `npm run synth`   perform build steps then synthesize the CloudFormat template(s)
 
 ### Stack definition
 
@@ -117,7 +131,6 @@ In order for CORS to be allowed it must be enabled on a RestApi resource AND the
 `lib/aws-cdk-js-dev-guide-stack.ts`:
 
 ```javascript
-
 // Enable CORS for all resources of an api
 const api = new RestApi(this, 'api-name', {
     defaultCorsPreflightOptions: {
@@ -139,7 +152,6 @@ api2Objects.addCorsPreflight({
     // array of methods eg. [ 'OPTIONS', 'GET', 'POST', 'PUT', 'DELETE' ]
     allowMethods: Cors.ALL_METHODS,
 });
-
 ```
 
 `handlers/myhandler/index.js`:
@@ -156,7 +168,7 @@ resolve({
 });
 ```
 
-NOTE: This project defines an origin per stack in the `lib/stages.json` file, which requires a modification to the `AwsStack` signature. This is not at all necessary, you should configure it in any way that suits your purposes.
+NOTE: This project defines an origin per stack in the `lib/stages.json` file, which requires a modification to the `AwsStack` signature. This is not a CDK requirement, you should configure it in any way that suits your purposes.
 
 For more details see [https://docs.aws.amazon.com/cdk/api/latest/docs/aws-apigateway-readme.html](https://docs.aws.amazon.com/cdk/api/latest/docs/aws-apigateway-readme.html) and [https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigateway.CorsOptions.html](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigateway.CorsOptions.html).
 

@@ -31,12 +31,13 @@ let stages:stagesType = stagesJson;
 for (let name in stages) {
     let stage:stageType = stages[name];
     for (let i in stage.regions) {
-        let region = stage.regions[i];
-        if (region.length == 0) {
+        let regionKey = stage.regions[i];
+        if (regionKey.length == 0) {
             // deploy region-agnostic when no region is specified
             new AwsStack(app, `AwsStack-${name}`, undefined, stage.origin);
         } else {
-            new AwsStack(app, `AwsStack-${name}-${region}`, { env: regions[region] }, stage.origin);
+            let region = regions[regionKey];
+            new AwsStack(app, `AwsStack-${name}-${regionKey}`, { env: region }, stage.origin);
         }
     }
 }

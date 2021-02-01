@@ -6,6 +6,8 @@ import regionsJson from '../lib/regions.json';
 import stagesJson from '../lib/stages.json';
 
 const app = new cdk.App();
+// this will add an app tag to all components
+cdk.Tags.of(app).add("app", "my-app-tag");
 
 // source region / account details from regions.json
 type regionsType = {
@@ -32,12 +34,19 @@ for (let name in stages) {
     let stage:stageType = stages[name];
     for (let i in stage.regions) {
         let regionKey = stage.regions[i];
+        let stackName;
+        let regionOptions;
         if (regionKey.length == 0) {
             // deploy region-agnostic when no region is specified
-            new AwsStack(app, `AwsStack-${name}`, undefined, stage.origin);
+            regionOptions = undefined;
+            stackName = `AwsStack-${name}`;
         } else {
             let region = regions[regionKey];
-            new AwsStack(app, `AwsStack-${name}-${regionKey}`, { env: region }, stage.origin);
+            regionOptions = { env: region };
+            stackName = `AwsStack-${name}-${regionKey}`;
         }
+        let stackInstance = new AwsStack(app, stackName, regionOptions, stage.origin);
+        // this will add a stack tag to all stack components
+        cdk.Tags.of(stackInstance).add('stack-name', stackName);
     }
 }

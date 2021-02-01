@@ -63,6 +63,12 @@ The stack definition is located in the `/lib` folder, this is where the stack is
 
 See [AWS CDK API documentation](https://docs.aws.amazon.com/cdk/api/latest/docs/aws-construct-library.html) for reference.
 
+#### Tagging apps and stacks for cost reporting
+
+Tagging can be used for multiple purposes, but it's particularly useful in isolating costs per app / stack.
+
+The example `bin/aws-cdk-js-dev-guide.ts` demonstrates tag configuration for an entire app as well as its individual stacks. Please note that in order to enable tag filtering in the cost explorer, [tags must be individually activated](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/activating-tags.html).
+
 #### API Gateway Stages
 
 I have deliberately ignored API Gateway's stage functionality in favour of manually configuring an entire stack as a stage. Without staging specifications the API's default to `prod`, if you want to specify something else then follow this example:

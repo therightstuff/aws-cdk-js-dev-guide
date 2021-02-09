@@ -1,19 +1,22 @@
 import * as cdk from '@aws-cdk/core';
-import { RestApi, LambdaIntegration, Cors } from '@aws-cdk/aws-apigateway';
+import { Duration } from '@aws-cdk/core';
 import { Table, AttributeType, BillingMode } from '@aws-cdk/aws-dynamodb';
+import { LogGroup } from '@aws-cdk/aws-logs';
+import { Function, Runtime, Code, LayerVersion } from '@aws-cdk/aws-lambda';
+import { AccessLogFormat, Cors, RestApi, LambdaIntegration, LogGroupLogDestination } from '@aws-cdk/aws-apigateway';
 import { Rule, Schedule } from '@aws-cdk/aws-events';
 import { LambdaFunction } from '@aws-cdk/aws-events-targets';
-import { Function, Runtime, Code, LayerVersion } from '@aws-cdk/aws-lambda';
 import { Queue } from '@aws-cdk/aws-sqs';
 import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
-import { Duration } from '@aws-cdk/core';
 
 export class AwsStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps, corsOrigin?: string) {
+  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps, customOptions?: any) {
     super(scope, id, props);
 
+    customOptions = customOptions || {};
+
     // set default CORS origin to ALL_ORIGINS
-    corsOrigin = corsOrigin || "*";
+    const corsOrigin = customOptions.origin || "*";
     // make the stack's CORS origin available to lambdas as an environment variable
     let corsEnvironment = {
       CORS_ORIGIN: corsOrigin
@@ -41,13 +44,25 @@ export class AwsStack extends cdk.Stack {
       timeout: Duration.seconds(2)
     });
 
-    // simple api
+    // simple REST api interface
+
+    // configure log group for RestApi access logs
+    const simpleFunctionAccessLogGroup = new LogGroup(this, 'simple-function-access-log-group', {
+      logGroupName: `apigateway/${customOptions.stackName}-simple-function`,
+      retention: 1 // retention in days
+      // see https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-logs.LogGroup.html
+    });
+
     // to enable CORS on all resources of the api, uncomment the line
     // beginning with defaultCorsPreflightOptions:
     const simpleApi = new RestApi(this, 'simple-api', {
       restApiName: 'Simple API sample',
       description: "Simple API sample with no dependencies",
-      // defaultCorsPreflightOptions: corsOptions
+      // defaultCorsPreflightOptions: corsOptions,
+      deployOptions: {
+        accessLogDestination: new LogGroupLogDestination(simpleFunctionAccessLogGroup),
+        accessLogFormat: AccessLogFormat.jsonWithStandardFields()
+      }
     });
 
     // to enable CORS on just the root or any other specific resource,

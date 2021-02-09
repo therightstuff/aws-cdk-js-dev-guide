@@ -45,7 +45,10 @@ for (let name in stages) {
             regionOptions = { env: region };
             stackName = `AwsStack-${name}-${regionKey}`;
         }
-        let stackInstance = new AwsStack(app, stackName, regionOptions, stage.origin);
+        let stackInstance = new AwsStack(app, stackName, regionOptions, {
+            origin: stage.origin,
+            stackName
+        });
         // this will add a stack tag to all stack components
         cdk.Tags.of(stackInstance).add('stack-name', stackName);
     }

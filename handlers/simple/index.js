@@ -5,6 +5,7 @@ exports.handler = async (event) => {
         let statusCode = (success ? 200 : 500)
         let returnObject = {
             "success": success,
+            "notice": `Please note that status code and "success" value are randomly determined`,
             "querystring": event.queryStringParameters
         };
 

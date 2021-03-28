@@ -16,12 +16,7 @@ everything's in the cloud already, I can't see much utility in testing locally -
 it's simpler and safer to deploy a separate stack for testing.
 
 The only real way to test locally would be to recreate the invoked lambda's
-context manually, which has proved too costly for too little benefit. If you're
-interested in seeing my efforts in that direction, I've left the
-`feature/adding-lambdas` branch up for reference (although that's only partial,
-the functional code for actually running the lambdas in a separate project and
-I'm not sure it's worth bringing in here - shoot me a message if you're really
-interested).
+context manually, which has proved too costly for too little benefit.
 
 ## Tooling setup for AWS development
 
@@ -30,17 +25,17 @@ interested).
 It is valuable and necessary to go through the following steps to familiarize
 yourself with the tools.
 
-- create programmatic user in IAM with admin permissions
+- create a programmatic user in IAM with admin permissions
 - if you're using visual studio code (recommended), [configure aws toolkit](https://docs.aws.amazon.com/toolkit-for-vscode/latest/userguide/setup-toolkit.html)
 - set up credentials with the profile id "default"
-- get 12 digit account id from My Account in console
+- get the 12 digit account id from My Account in console
 - follow [the CDK hello world tutorial](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html#hello_world_tutorial)
 
 ### Tool Versions
 
-CDK, like SAM, tends to be updated frequently with breaking changes. Prior to
-committing changes, please ensure that you are using the latest versions and
-that everything is building and running correctly.
+CDK, like SAM, tends to be updated frequently - sometimes with breaking changes.
+Prior to committing changes, it's a good idea to ensure that you are using the
+latest versions and that everything is building and running correctly.
 
 ### CDK Initialization
 
@@ -74,8 +69,9 @@ Copy the following as-is to your new project:
 ```
 
 Additionally, you will need to copy the npm script definitions from
-`package.json` and the `bin/aws-cdk-js-dev-guide.ts` (with the stack name
-modified to match your new project).
+`package.json`, the `bin/aws-cdk-js-dev-guide.ts` file (with the stack name
+modified to match your new project), and modify the signature of
+`lib/aws-cdk-js-dev-guide-stack.ts` to accept custom options.
 
 ### Useful commands
 

@@ -14,7 +14,7 @@
     "cdk": "cdk",
     "synth": "npm run build && echo 'performing cdk synthesis...' && cdk synth",
     "synth-no-layers": "npm run build-no-layers && echo 'performing cdk synthesis...' && cdk synth",
-    "package-upgrade": "npx npm-check-updates -u"
+    "package-upgrade": "node package-upgrade"
   },
   "repository": {
     "type": "git",

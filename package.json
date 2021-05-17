@@ -28,7 +28,7 @@
   "homepage": "https://github.com/therightstuff/aws-cdk-js-dev-guide#readme",
   "dependencies": {
     "@aws-cdk/assert": "^1.103.0",
-    "@aws-cdk/aws-apigateway": "^1.103.0",
+    "@aws-cdk/aws-apigateway": "^1.104.0",
     "@aws-cdk/aws-dynamodb": "^1.103.0",
     "@aws-cdk/aws-events-targets": "^1.103.0",
     "@aws-cdk/aws-lambda": "^1.103.0",

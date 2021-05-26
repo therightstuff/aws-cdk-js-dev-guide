@@ -9,3 +9,8 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
+    ignore:
+      # Ignore updates to cdk packages as they only need to be updated
+      # when synthesizing and deploying (and there's a warning if your
+      # packages are out of date)
+      - dependency-name: "@aws-cdk/*"

@@ -36,7 +36,7 @@
     "@aws-cdk/aws-logs": "^1.103.0",
     "@aws-cdk/core": "^1.103.0",
     "@types/jest": "^26.0.23",
-    "@types/node": "15.0.3",
+    "@types/node": "15.6.1",
     "aws-sdk": "^2.906.0",
     "eslint": "^7.26.0",
     "fs-extra": "^10.0.0",

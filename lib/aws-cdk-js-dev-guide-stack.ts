@@ -107,14 +107,25 @@ export class AwsStack extends cdk.Stack {
     // ****************** dynamodb table and functions ************************
     // ************************************************************************
 
-    // If you're note already familiar with DynamoDB's reserved keywords, it's
+    // If you're not already familiar with DynamoDB's reserved keywords, it's
     // worth checking your attribute names against
     // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html.
     // NOTE: remove timeToLiveAttribute if you don't want to set a TTL for the data
     const dynamodbTable = new Table(this, 'dynamodb-table', {
-      partitionKey: { name: 'id', type: AttributeType.STRING },
+      partitionKey: { name: 'dataOwner', type: AttributeType.STRING },
+      sortKey: { name: 'objectId', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
       timeToLiveAttribute: 'expiration'
+    });
+
+    // Querying a DynamoDB table without knowing the partition key is not
+    // possible without a Secondary Index, see
+    // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/SecondaryIndexes.html
+    // for more details.
+    const DDB_GSI_NAME = 'dynamodb-table-flip-index';
+    dynamodbTable.addGlobalSecondaryIndex({
+      indexName: DDB_GSI_NAME,
+      partitionKey: { name: 'objectId', type: AttributeType.STRING },
     });
 
     const dynamodbGetFunction = new Function(this, 'dynamodb-function-get', {
@@ -123,7 +134,8 @@ export class AwsStack extends cdk.Stack {
       code: Code.fromAsset('./handlers/dynamodb'),
       environment: {
         ...corsEnvironment,
-        TABLE_NAME: dynamodbTable.tableName
+        TABLE_NAME: dynamodbTable.tableName,
+        DDB_GSI_NAME
       },
       layers: [layer]
     });
@@ -164,11 +176,15 @@ export class AwsStack extends cdk.Stack {
       code: Code.fromAsset('./handlers/dynamodb'),
       environment: {
         ...corsEnvironment,
-        TABLE_NAME: dynamodbTable.tableName
+        TABLE_NAME: dynamodbTable.tableName,
+        DDB_GSI_NAME
       },
       layers: [layer]
     });
 
+    // the update itself doesn't require read permissions, but we may need to query
+    // the object using the global secondary index. see handlers/dynamodb/update.js
+    dynamodbTable.grantReadData(dynamodbUpdateFunction);
     dynamodbTable.grantWriteData(dynamodbUpdateFunction);
 
     // dynamodb api

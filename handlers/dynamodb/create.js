@@ -32,11 +32,13 @@ exports.handler = async (event) => {
         }
 
         // add a new object to the table
-        let newId = uuid();
+        let newDataOwner = uuid();
+        let newObjectId = uuid();
         dynamodb.put({
             TableName: TABLE_NAME,
             Item: {
-                "id": newId,
+                "dataOwner": newDataOwner,
+                "objectId": newObjectId,
                 "payload": payload,
                 "expiration": getExpirationTime()
             }
@@ -47,7 +49,8 @@ exports.handler = async (event) => {
                 "headers": corsHeaders,
                 "body": {
                     "success": true,
-                    "id": newId
+                    "dataOwner": newDataOwner,
+                    "objectId": newObjectId
                 }
             }));
         })

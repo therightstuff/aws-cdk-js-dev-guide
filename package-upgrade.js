@@ -3,7 +3,7 @@ const fse = require("fs-extra");
 const childProcess = require("child_process");
 
 console.log(`updating cdk project packages`);
-childProcess.execSync('npx npm-check-updates -u');
+childProcess.execSync('npx npm-check-updates -u', { stdio: 'inherit', stderr: 'inherit' });
 
 // get layers' src directories
 let srcdirs = fs.readdirSync('layers/src', { withFileTypes: true })
@@ -15,5 +15,5 @@ for (let i in srcdirs) {
     console.log(`\nupdating packages for layer ${layer}...`);
 
     let layerSrcPath = `layers/src/${layer}`
-    childProcess.execSync('npx npm-check-updates -u', { cwd: layerSrcPath });
+    childProcess.execSync('npx npm-check-updates -u', { cwd: layerSrcPath, stdio: 'inherit', stderr: 'inherit' });
 }

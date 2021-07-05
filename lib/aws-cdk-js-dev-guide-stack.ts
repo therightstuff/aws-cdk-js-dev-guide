@@ -1,6 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import { Duration } from '@aws-cdk/core';
-import { Table, AttributeType, BillingMode } from '@aws-cdk/aws-dynamodb';
+import { Table, AttributeType, BillingMode, ProjectionType } from '@aws-cdk/aws-dynamodb';
 import { LogGroup } from '@aws-cdk/aws-logs';
 import { Function, Runtime, Code, LayerVersion } from '@aws-cdk/aws-lambda';
 import { AccessLogFormat, Cors, RestApi, LambdaIntegration, LogGroupLogDestination } from '@aws-cdk/aws-apigateway';
@@ -122,9 +122,12 @@ export class AwsStack extends cdk.Stack {
     // possible without a Secondary Index, see
     // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/SecondaryIndexes.html
     // for more details.
+    // NOTE: by default the projection type is set to ALL when it should
+    // be set to the minimum number of fields required by the queries.
     const DDB_GSI_NAME = 'dynamodb-table-flip-index';
     dynamodbTable.addGlobalSecondaryIndex({
       indexName: DDB_GSI_NAME,
+      projectionType: ProjectionType.KEYS_ONLY,
       partitionKey: { name: 'objectId', type: AttributeType.STRING },
     });
 

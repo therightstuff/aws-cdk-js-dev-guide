@@ -1,6 +1,3 @@
-// regions.json contains sensitive data, so we use {{ENVIRONMENT_VAR_NAME}}
-// placeholders and replace them with environment variables loaded with
-// dotenv
 import fs from 'fs';
 import dotenv from "dotenv";
 dotenv.config();

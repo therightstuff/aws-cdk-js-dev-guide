@@ -42,6 +42,8 @@ Copy the following as-is to your new project:
 |- `.eslintc`
 |- `.gitignore`
 |- `.npmignore`
+|- `/bin`
+    |- `/load-sensitive-json.ts`
 |- `build-layers.js`
 |- `package-upgrade.js`
 |- `tsconfig.json`

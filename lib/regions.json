@@ -1,10 +1,10 @@
 {
     "eu": {
         "region": "eu-west-1",
-        "account": "XXXXXXXXXXXX"
+        "account": "{{AWS_ACCOUNT_NO}}"
     },
     "za": {
         "region": "af-south-1",
-        "account": "XXXXXXXXXXXX"
+        "account": "{{AWS_ACCOUNT_NO}}"
     }
 }

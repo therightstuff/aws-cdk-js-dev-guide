@@ -2,9 +2,14 @@
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
 import { AwsStack } from '../lib/aws-cdk-js-dev-guide-stack';
-import regionsJson from '../lib/regions.json';
+
+import path from 'path';
+import loadSensitiveJson from './load-sensitive-json';
+let regionsJson = loadSensitiveJson(path.resolve(__dirname, '../lib/regions.json'));
+
 import stagesJson from '../lib/stages.json';
 
+// begin CDK stack synthesis
 const app = new cdk.App();
 // this will add an app tag to all components
 cdk.Tags.of(app).add("app", "my-app-tag");

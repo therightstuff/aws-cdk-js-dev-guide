@@ -65,6 +65,10 @@ The stack definition is located in the `/lib` folder, this is where the stack is
 
 See [AWS CDK API documentation](https://docs.aws.amazon.com/cdk/api/latest/docs/aws-construct-library.html) for reference.
 
+#### Sensitive data
+
+While it's useful to set up stages and regions in the `/lib` folder, it's not a good idea to keep your sensitive secrets in those files as they're at risk of being accidentally checked in. As an alternative, it's recommended to use `dotenv`. `/bin/aws-cdk-js-dev-guide.ts` uses `/bin/load-sensitive-json.ts` to ingest the `/lib/regions.json` and replace anything surrounded by double braces with the value of the environment variable of the same name.
+
 #### Tagging apps and stacks for cost reporting
 
 Tagging can be used for multiple purposes, but it's particularly useful in isolating costs per app / stack.

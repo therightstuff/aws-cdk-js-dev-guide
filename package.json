@@ -39,7 +39,7 @@
     "@types/node": "16.0.1",
     "aws-sdk": "^2.941.0",
     "dotenv": "^10.0.0",
-    "eslint": "^7.30.0",
+    "eslint": "^7.32.0",
     "fs-extra": "^10.0.0",
     "jest": "^27.0.6",
     "source-map-support": "^0.5.19",

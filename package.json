@@ -36,7 +36,7 @@
     "@aws-cdk/aws-logs": "^1.117.0",
     "@aws-cdk/core": "^1.117.0",
     "@types/jest": "^26.0.24",
-    "@types/node": "16.4.13",
+    "@types/node": "16.7.6",
     "aws-sdk": "^2.962.0",
     "dotenv": "^10.0.0",
     "eslint": "^7.32.0",

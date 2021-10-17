@@ -251,11 +251,13 @@ export class AwsStack extends cdk.Stack {
     //     Lambda service is continuously long-polling the SQS queue the
     //     account will be charged for those API calls at the standard SQS
     //     pricing rates."
+    /* set up a queue event listener
     let queueEventSource = new SqsEventSource(sqsQueue, {
       batchSize: 10 // default
     });
 
     queueSubscribeFunction.addEventSource(queueEventSource);
+    */
 
     dynamodbTable.grantWriteData(queueSubscribeFunction);
 

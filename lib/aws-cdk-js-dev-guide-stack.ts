@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import { Duration } from '@aws-cdk/core';
 import { Table, AttributeType, BillingMode, ProjectionType } from '@aws-cdk/aws-dynamodb';
+import { BackupPlan, BackupResource, BackupPlanRule } from '@aws-cdk/aws-backup';
 import { LogGroup } from '@aws-cdk/aws-logs';
 import { Function, Runtime, Code, LayerVersion } from '@aws-cdk/aws-lambda';
 import { AccessLogFormat, Cors, RestApi, LambdaIntegration, LogGroupLogDestination } from '@aws-cdk/aws-apigateway';
@@ -14,6 +15,18 @@ export class AwsStack extends cdk.Stack {
     super(scope, id, props);
 
     customOptions = customOptions || {};
+
+    // configure backup plan, alternatively use defaults like BackupPlan.dailyWeeklyMonthly5YearRetention
+    const backupPlan = new BackupPlan(this, `${id}-daily-weekly-monthly`);
+    backupPlan.addRule(BackupPlanRule.daily());
+    backupPlan.addRule(BackupPlanRule.weekly());
+    backupPlan.addRule(BackupPlanRule.monthly1Year());
+    backupPlan.addSelection('Selection', {
+      resources: [
+        //BackupResource.fromDynamoDbTable(myTable), // A specific DynamoDB table
+        BackupResource.fromTag('stack-name', id), // All resources that are tagged stack-name=<id> in the region/account
+      ]
+    });
 
     // set default CORS origin to ALL_ORIGINS
     const corsOrigin = customOptions.origin || "*";

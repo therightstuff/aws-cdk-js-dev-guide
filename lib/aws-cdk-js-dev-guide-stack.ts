@@ -1,17 +1,15 @@
-import * as cdk from '@aws-cdk/core';
-import { Duration } from '@aws-cdk/core';
-import { Table, AttributeType, BillingMode, ProjectionType } from '@aws-cdk/aws-dynamodb';
-import { BackupPlan, BackupResource, BackupPlanRule } from '@aws-cdk/aws-backup';
-import { LogGroup } from '@aws-cdk/aws-logs';
-import { Function, Runtime, Code, LayerVersion } from '@aws-cdk/aws-lambda';
-import { AccessLogFormat, Cors, RestApi, LambdaIntegration, LogGroupLogDestination } from '@aws-cdk/aws-apigateway';
-import { Rule, Schedule } from '@aws-cdk/aws-events';
-import { LambdaFunction } from '@aws-cdk/aws-events-targets';
-import { Queue } from '@aws-cdk/aws-sqs';
-import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
+import { Duration, Stack, StackProps } from 'aws-cdk-lib';
+import { AccessLogFormat, Cors, LambdaIntegration, LogGroupLogDestination, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { BackupPlan, BackupPlanRule, BackupResource } from 'aws-cdk-lib/aws-backup';
+import { AttributeType, BillingMode, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
+import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
+import { Code, Function, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { LogGroup } from 'aws-cdk-lib/aws-logs';
+import { Queue } from 'aws-cdk-lib/aws-sqs';
+import { Construct } from 'constructs';
 
-export class AwsStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps, customOptions?: any) {
+export class AwsStack extends Stack {
+  constructor(scope: Construct, id: string, props?: StackProps, customOptions?: any) {
     super(scope, id, props);
 
     customOptions = customOptions || {};

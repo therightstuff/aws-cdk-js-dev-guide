@@ -1,13 +1,12 @@
 #!/usr/bin/env node
-import 'source-map-support/register';
-import * as cdk from '@aws-cdk/core';
-import { AwsStack } from '../lib/aws-cdk-js-dev-guide-stack';
-
+import * as cdk from 'aws-cdk-lib';
 import path from 'path';
-import loadSensitiveJson from './load-sensitive-json';
-let regionsJson = loadSensitiveJson(path.resolve(__dirname, '../lib/regions.json'));
-
+import 'source-map-support/register';
+import { AwsStack } from '../lib/aws-cdk-js-dev-guide-stack';
 import stagesJson from '../lib/stages.json';
+import loadSensitiveJson from './load-sensitive-json';
+
+let regionsJson = loadSensitiveJson(path.resolve(__dirname, '../lib/regions.json'));
 
 // begin CDK stack synthesis
 const app = new cdk.App();

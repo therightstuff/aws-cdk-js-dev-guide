@@ -16,7 +16,7 @@ The only real way to test locally would be to recreate the invoked lambda's cont
 It is valuable and necessary to go through the following steps to familiarize yourself with the tools.
 
 - create a programmatic user in IAM with admin permissions
-- if you're using visual studio code (recommended), [configure aws toolkit](https://docs.aws.amazon.com/toolkit-for-vscode/latest/userguide/setup-toolkit.html)
+- if you're using [Visual Studio Code](https://code.visualstudio.com/) (recommended), [configure the AWS toolkit](https://docs.aws.amazon.com/toolkit-for-vscode/latest/userguide/setup-toolkit.html)
 - set up credentials with the profile id "default"
 - get the 12 digit account id from My Account in console
 - follow [the CDK hello world tutorial](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html#hello_world_tutorial)
@@ -24,6 +24,10 @@ It is valuable and necessary to go through the following steps to familiarize yo
 ### Tool Versions
 
 CDK, like SAM, tends to be updated frequently - sometimes with breaking changes. Prior to committing changes, it's a good idea to ensure that you are using the latest versions and that everything is building and running correctly.
+
+#### Upgrading from CDK v1
+
+To upgrade from CDK v1, switch to the [feature/v1-v2-migration branch](https://github.com/therightstuff/aws-cdk-js-dev-guide/tree/feature/v1-v2-migration) which I will leave in place for you to be able to review the changes.
 
 ### CDK Initialization
 
@@ -65,7 +69,7 @@ Additionally, you will need to copy the npm script definitions from `package.jso
 
 The stack definition is located in the `/lib` folder, this is where the stack is configured for deployment.
 
-See [AWS CDK API documentation](https://docs.aws.amazon.com/cdk/api/latest/docs/aws-construct-library.html) for reference.
+See [AWS CDK API documentation](https://docs.aws.amazon.com/cdk/api/latest/guide/) (in particular, [the constructs library](https://docs.aws.amazon.com/cdk/api/v2/docs/constructs-readme.html)) for reference.
 
 #### Sensitive data (using .env files)
 
@@ -205,7 +209,7 @@ resolve({
 
 NOTE: This project defines an origin per stack in the `lib/stages.json` file, which requires a modification to the `AwsStack` signature. This is not a CDK requirement, you should configure it in any way that suits your purposes.
 
-For more details see [https://docs.aws.amazon.com/cdk/api/latest/docs/aws-apigateway-readme.html](https://docs.aws.amazon.com/cdk/api/latest/docs/aws-apigateway-readme.html) and [https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigateway.CorsOptions.html](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigateway.CorsOptions.html).
+For more details see [the API Gateway library documentation](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_apigateway-readme.html), and [the CORS documentation](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_apigateway.Cors.html) in particular.
 
 ### Deployment
 

@@ -30,7 +30,7 @@
     "aws-cdk-lib": "^2.23.0",
     "aws-sdk": "^2.1130.0",
     "constructs": "^10.1.4",
-    "dotenv": "^16.0.0",
+    "dotenv": "^16.0.1",
     "eslint": "^8.15.0",
     "fs-extra": "^10.1.0",
     "source-map-support": "^0.5.21",

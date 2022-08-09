@@ -27,7 +27,7 @@
   "homepage": "https://github.com/therightstuff/aws-cdk-js-dev-guide#readme",
   "dependencies": {
     "@types/node": "17.0.31",
-    "aws-cdk-lib": "^2.23.0",
+    "aws-cdk-lib": "^2.36.0",
     "aws-sdk": "^2.1130.0",
     "constructs": "^10.1.4",
     "dotenv": "^16.0.0",

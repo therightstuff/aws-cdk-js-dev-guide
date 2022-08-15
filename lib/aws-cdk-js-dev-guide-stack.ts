@@ -44,7 +44,7 @@ export class AwsStack extends Stack {
     // ************************************************************************
 
     const simpleFunction = new Function(this, 'simple-function', {
-      runtime: Runtime.NODEJS_14_X,
+      runtime: Runtime.NODEJS_16_X,
       handler: 'index.handler',
       code: Code.fromAsset('./handlers/simple'),
       environment: {
@@ -94,14 +94,14 @@ export class AwsStack extends Stack {
     const layer = new LayerVersion(this, 'sample-layer', {
       // Code.fromAsset must reference the build folder
       code: Code.fromAsset('./layers/build/sample-layer'),
-      compatibleRuntimes: [Runtime.NODEJS_14_X],
+      compatibleRuntimes: [Runtime.NODEJS_16_X],
       license: 'MIT',
       description: 'A sample layer for the layer and dynamodb test functions',
     });
 
     // layer test function
     const layerFunction = new Function(this, 'layer-function', {
-      runtime: Runtime.NODEJS_14_X,
+      runtime: Runtime.NODEJS_16_X,
       handler: 'index.handler',
       code: Code.fromAsset('./handlers/layer'),
       layers: [layer]
@@ -143,7 +143,7 @@ export class AwsStack extends Stack {
     });
 
     const dynamodbGetFunction = new Function(this, 'dynamodb-function-get', {
-      runtime: Runtime.NODEJS_14_X,
+      runtime: Runtime.NODEJS_16_X,
       handler: 'get.handler',
       code: Code.fromAsset('./handlers/dynamodb'),
       environment: {
@@ -157,7 +157,7 @@ export class AwsStack extends Stack {
     dynamodbTable.grantReadData(dynamodbGetFunction);
 
     const dynamodbScanFunction = new Function(this, 'dynamodb-function-scan', {
-      runtime: Runtime.NODEJS_14_X,
+      runtime: Runtime.NODEJS_16_X,
       handler: 'scan.handler',
       code: Code.fromAsset('./handlers/dynamodb'),
       environment: {
@@ -172,7 +172,7 @@ export class AwsStack extends Stack {
     let dynamodbScanFunctionIntegration = new LambdaIntegration(dynamodbScanFunction);
 
     const dynamodbCreateFunction = new Function(this, 'dynamodb-function-create', {
-      runtime: Runtime.NODEJS_14_X,
+      runtime: Runtime.NODEJS_16_X,
       handler: 'create.handler',
       code: Code.fromAsset('./handlers/dynamodb'),
       environment: {
@@ -185,7 +185,7 @@ export class AwsStack extends Stack {
     dynamodbTable.grantWriteData(dynamodbCreateFunction);
 
     const dynamodbUpdateFunction = new Function(this, 'dynamodb-function-update', {
-      runtime: Runtime.NODEJS_14_X,
+      runtime: Runtime.NODEJS_16_X,
       handler: 'update.handler',
       code: Code.fromAsset('./handlers/dynamodb'),
       environment: {
@@ -230,7 +230,7 @@ export class AwsStack extends Stack {
     const sqsQueue = new Queue(this, 'sqs-queue');
 
     const queuePublishFunction = new Function(this, 'queue-function-publish', {
-      runtime: Runtime.NODEJS_14_X,
+      runtime: Runtime.NODEJS_16_X,
       handler: 'index.publish',
       code: Code.fromAsset('./handlers/sqs'),
       environment: {
@@ -244,7 +244,7 @@ export class AwsStack extends Stack {
     sqsQueue.grantSendMessages(queuePublishFunction);
 
     const queueSubscribeFunction = new Function(this, 'queue-function-subscribe', {
-      runtime: Runtime.NODEJS_14_X,
+      runtime: Runtime.NODEJS_16_X,
       handler: 'index.subscribe',
       code: Code.fromAsset('./handlers/sqs'),
       environment: {
@@ -287,7 +287,7 @@ export class AwsStack extends Stack {
     // ************************************************************************
 
     const scheduledFunction = new Function(this, 'scheduled-function', {
-      runtime: Runtime.NODEJS_14_X,
+      runtime: Runtime.NODEJS_16_X,
       handler: 'index.handler',
       code: Code.fromAsset('./handlers/scheduled'),
       timeout: Duration.seconds(2)

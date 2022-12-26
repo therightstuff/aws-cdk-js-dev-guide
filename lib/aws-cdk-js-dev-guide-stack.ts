@@ -203,7 +203,7 @@ export class AwsStack extends Stack {
 
     // dynamodb api
     const dynamodbApi = new RestApi(this, 'dynamodb-api', {
-      defaultCorsPreflightOptions: corsOptions
+      defaultCorsPreflightOptions: corsOptions,
     });
 
     // /objects

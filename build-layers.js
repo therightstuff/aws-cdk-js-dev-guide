@@ -11,13 +11,21 @@ console.log('building layers...')
 
 // ensure layers directory created
 fs.mkdirSync('layers/src', {recursive: true});
-console.log(`deleting previous build directories...`);
-fs.rmSync('layers/build', { recursive: true, force: true });
 
-// get layers' src directories
+console.log(`deleting previous build directories that don't have matching source directories...`);
 let srcdirs = fs.readdirSync('layers/src', { withFileTypes: true })
     .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name)
+    .map(dirent => dirent.name);
+let builddirs = fs.readdirSync('layers/build', { withFileTypes: true })
+    .filter(dirent => dirent.isDirectory())
+    .map(dirent => dirent.name);
+for (let i in builddirs) {
+    let builddir = builddirs[i];
+    if (!srcdirs.includes(builddir)) {
+        console.log(`deleting ${builddir}...`);
+        fs.rmSync(`layers/build/${builddir}`, { recursive: true, force: true });
+    }
+}
 
 for (let i in srcdirs) {
     let layer = srcdirs[i];
@@ -25,6 +33,20 @@ for (let i in srcdirs) {
 
     let layerSrcPath = `layers/src/${layer}`
     let layerBuildPath = `layers/build/${layer}/nodejs`
+
+    // calculate md5 hash for entire src directory
+    // according to https://unix.stackexchange.com/a/35834/305967
+    console.log(`calculating md5 hash for ${layer}...`);
+    let hash = process.execSync(`tar -cf - ${layerSrcPath} | md5sum | cut -d ' ' -f 1`, { encoding: 'utf8' }).trim();
+
+    // if the hash matches the hash in the build directory, skip this layer
+    let buildHashFile = `layers/build/${layer}.md5`;
+    let buildHash = fs.existsSync(buildHashFile) ? fs.readFileSync(buildHashFile, { encoding: 'utf8' }).trim() : null;
+
+    if (hash == buildHash) {
+        console.log(`skipping ${layer}, no changes detected...`);
+        continue;
+    }
 
     console.log(`(re)creating build directory...`);
     fs.mkdirSync(layerBuildPath, { recursive: true });
@@ -50,6 +72,9 @@ for (let i in srcdirs) {
 
     console.log("removing package-lock.json...");
     fs.unlinkSync(`${layerBuildPath}/package-lock.json`);
+
+    console.log(`writing hash to ${buildHashFile}...`);
+    fs.writeFileSync(buildHashFile, hash, { encoding: 'utf8' });
 
     console.log(`${layer} folder build complete`);
 }

@@ -65,9 +65,15 @@ Additionally, you will need to copy the npm script definitions from `package.jso
 - `cdk deploy`      deploy this stack to your default AWS account/region
 - `cdk diff`        compare deployed stack with current state
 
+### CDK Runtime Context
+
+[CDK Runtime context](https://docs.aws.amazon.com/cdk/v2/guide/context.html) is cached to prevent unexpected changes. It is recommended to check in `cdk.context.json` to your repository, but you will find it *.gitignore*d in this one because it can include sensitive information.
+
+**ENSURE THIS FILE IS CHECKED IN TO YOUR PRODUCTION REPOSITORIES!**
+
 ### Stack definition
 
-The stack definition is located in the `/lib` folder, this is where the stack is configured for deployment.
+The stack definition is located in the `lib` folder, this is where the stack is configured for deployment. This is just an example, stack configurations can be handled in a wide variety of ways; for TypeScript CDK projects they're used by the entry point in the `bin` folder.
 
 See [AWS CDK API documentation](https://docs.aws.amazon.com/cdk/api/latest/guide/) (in particular, [the constructs library](https://docs.aws.amazon.com/cdk/api/v2/docs/constructs-readme.html)) for reference.
 
@@ -211,10 +217,25 @@ NOTE: This project defines an origin per stack in the `lib/stages.json` file, wh
 
 For more details see [the API Gateway library documentation](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_apigateway-readme.html), and [the CORS documentation](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_apigateway.Cors.html) in particular.
 
+#### Domains and Static Websites
+
+While I'm sure it's possible to create the required hosted zone using CDK, I'm not sure one would want to considering the need to point one's domain name to the AWS nameservers. Configuring the hosted zone is relatively straightforward using the AWS console:
+
+1. Open the AWS Console on the Route 53 service.
+2. Selected Hosted Zones and then Create Hosted Zone.
+3. Enter your domain name (the naked domain eg. example.com) and select Public Hosted Zone.
+4. Once created, select the hosted zone's NS record and copy the nameserver values to your domain configuration with your domain name registrar.
+
+WARNING: If the domain is not configured correctly using the hosted zone's nameservers prior to deployment, the certificate will not be validated and there's a good chance the stack will require manual intervention to rollback the changes or delete it.
+
+See [https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/CreatingHostedZone.html](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/CreatingHostedZone.html) for more details.
+
 ### Deployment
 
 By default, CDK deploys stacks that are [environment-agnostic](https://docs.aws.amazon.com/cdk/latest/guide/environments.html).
-To enable environment-agnostic deployments, run `cdk bootstrap` before `cdk deploy`, but configuring specific regions is probably the safer practice.
+To enable environment-agnostic deployments, run `cdk bootstrap` before `cdk deploy`, but configuring specific regions is the safer practice.
+
+**NOTE**: While environment-agnostic deployments are usually possible, there are certain constructs that are simply incompatible. See the `WrappedError` from the Hosted Zone lookup for an example of this.
 
 To deploy to specific regions, update the `bin/regions.json` file with the desired region and account numbers.
 

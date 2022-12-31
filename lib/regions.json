@@ -1,10 +1,14 @@
 {
+    "us": {
+        "region": "us-east-1",
+        "account": "{{AWS_ACCOUNT_NO}}"
+    },
     "eu": {
         "region": "eu-west-1",
         "account": "{{AWS_ACCOUNT_NO}}"
     },
-    "za": {
-        "region": "af-south-1",
+    "au": {
+        "region": "ap-southeast-2",
         "account": "{{AWS_ACCOUNT_NO}}"
     }
 }

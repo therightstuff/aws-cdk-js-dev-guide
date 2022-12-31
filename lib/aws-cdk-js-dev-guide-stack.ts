@@ -1,12 +1,28 @@
-import { Duration, Stack, StackProps } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
 import { AccessLogFormat, Cors, LambdaIntegration, LogGroupLogDestination, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { BackupPlan, BackupPlanRule, BackupResource } from 'aws-cdk-lib/aws-backup';
+import { DnsValidatedCertificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { CloudFrontWebDistribution, OriginProtocolPolicy, SecurityPolicyProtocol, SSLMethod } from 'aws-cdk-lib/aws-cloudfront';
 import { AttributeType, BillingMode, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { Code, Function, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
+import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
+import * as targets from 'aws-cdk-lib/aws-route53-targets';
+import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
+
+class WrappedError extends Error {
+  cause: any;
+  constructor(message: string, cause: any) {
+    super(message);
+    this.cause = cause;
+    this.name = 'WrappedError';
+  }
+}
 
 export class AwsStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps, customOptions?: any) {
@@ -15,16 +31,19 @@ export class AwsStack extends Stack {
     customOptions = customOptions || {};
 
     // configure backup plan, alternatively use defaults like BackupPlan.dailyWeeklyMonthly5YearRetention
-    const backupPlan = new BackupPlan(this, `${id}-daily-weekly-monthly`);
-    backupPlan.addRule(BackupPlanRule.daily());
-    backupPlan.addRule(BackupPlanRule.weekly());
-    backupPlan.addRule(BackupPlanRule.monthly1Year());
-    backupPlan.addSelection('Selection', {
-      resources: [
-        //BackupResource.fromDynamoDbTable(myTable), // A specific DynamoDB table
-        BackupResource.fromTag('stack-name', id), // All resources that are tagged stack-name=<id> in the region/account
-      ]
-    });
+    const createBackupPlan = false;
+    if (createBackupPlan) {
+      const backupPlan = new BackupPlan(this, `${id}-daily-weekly-monthly`);
+      backupPlan.addRule(BackupPlanRule.daily());
+      backupPlan.addRule(BackupPlanRule.weekly());
+      backupPlan.addRule(BackupPlanRule.monthly1Year());
+      backupPlan.addSelection('Selection', {
+        resources: [
+          //BackupResource.fromDynamoDbTable(myTable), // A specific DynamoDB table
+          BackupResource.fromTag('stack-name', id), // All resources that are tagged stack-name=<id> in the region/account
+        ]
+      });
+    }
 
     // set default CORS origin to ALL_ORIGINS
     const corsOrigin = customOptions.origin || "*";
@@ -299,11 +318,105 @@ export class AwsStack extends Stack {
       schedule: Schedule.rate(Duration.minutes(15))
     });
 
-    // CAUTION: uncommenting this line will cause the lambda function
-    //          to be invoked at the specified interval. If not actually
+    // CAUTION: enabling scheduling will cause the lambda function to be
+    //          invoked at the specified interval. If not actually
     //          required it's bad form to leave it running: aside from
     //          potential cost to you, it's also a waste of resources
     //          others might need.
-    //rule.addTarget(new LambdaFunction(scheduledFunction));
+    const isScheduleEnabled = false;
+    if (isScheduleEnabled) {
+      rule.addTarget(new LambdaFunction(scheduledFunction));
+    }
+
+    // ************************************************************************
+    // ************************ s3 bucket static website **********************
+    // ************************************************************************
+    // NOTE: See README.md for instructions on how to configure a Hosted Zone.
+    // CAUTION: Hosted Zones are not free, nor is their usage. Each domain you
+    //          configure will cost you a minimum of $0.50 per month (assuming
+    //          reasonable use)
+    //          See https://aws.amazon.com/route53/pricing/ for more details.
+
+    const domainName = null; // eg. "example.com";
+
+    if (domainName) {
+      // Many thanks to https://blog.dennisokeeffe.com/blog/2020-11-04-deploying-websites-to-aws-s3-with-the-cdk
+      // and GitHub Copilot for this example!
+      let zone;
+      try {
+        zone = HostedZone.fromLookup(this, domainName, {
+          domainName,
+        });
+      } catch (err) {
+        // throw a wrapped error to make it easier to find in the logs
+        throw new WrappedError(`Hosted zone not found / region not specified for stack ${id} with region options ${props}.`, err);
+      }
+      new CfnOutput(this, "Site", { value: "https://" + domainName });
+
+      // create the site bucket for the naked domain
+      const siteBucket = new Bucket(this, "static-website", {
+        bucketName: domainName,
+        websiteIndexDocument: "index.html",
+        publicReadAccess: false, // this will prevent the bucket from being browsable directly
+        removalPolicy: RemovalPolicy.DESTROY, // NOT recommended for production code
+        autoDeleteObjects: true, // NOT recommended for production code
+      });
+      new CfnOutput(this, "Bucket", { value: siteBucket.bucketName });
+
+      // TLS certificate
+      const certificateArn = new DnsValidatedCertificate(
+        this,
+        "SiteCertificate",
+        {
+          domainName,
+          hostedZone: zone,
+          region: "us-east-1", // Cloudfront only checks us-east-1 (N. Virginia) for certificates.
+        }
+      ).certificateArn;
+      new CfnOutput(this, "Certificate", { value: certificateArn });
+
+      // CloudFront distribution that provides HTTPS
+      const distribution = new CloudFrontWebDistribution(
+        this,
+        "SiteDistribution",
+        {
+            viewerCertificate: {
+                aliases: [domainName],
+                props: {
+                    acmCertificateArn: certificateArn,
+                    sslSupportMethod: SSLMethod.SNI,
+                    minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_1_2016,
+                },
+            },
+            originConfigs: [
+                {
+                    customOriginSource: {
+                        domainName: siteBucket.bucketWebsiteDomainName,
+                        originProtocolPolicy: OriginProtocolPolicy.HTTP_ONLY,
+                    },
+                    behaviors: [{ isDefaultBehavior: true }],
+                },
+            ],
+        }
+      );
+      new CfnOutput(this, "DistributionId", {
+        value: distribution.distributionId,
+      });
+
+      // Route53 alias record for the CloudFront distribution
+      new ARecord(this, "SiteAliasRecord", {
+        recordName: domainName,
+        target: RecordTarget.fromAlias(
+            new targets.CloudFrontTarget(distribution)
+        ),
+        zone,
+      });
+
+      // Deploy the static website to the site bucket
+      new BucketDeployment(this, "static-website-deployment", {
+        sources: [Source.asset("./static-website")],
+        destinationBucket: siteBucket,
+      });
+    }
   }
 }

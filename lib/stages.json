@@ -1,14 +1,14 @@
 {
-    "prod": {
+    "prod-us": {
         "origin": "*",
-        "regions": ["za"]
+        "regions": ["us"]
     },
-    "test": {
+    "prod-alt": {
         "origin": "*",
-        "regions": ["eu", "za"]
+        "regions": ["eu", "au"]
     },
     "dev": {
         "origin": "*",
-        "regions": [""]
+        "regions": ["us"]
     }
 }

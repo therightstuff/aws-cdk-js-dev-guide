@@ -15,3 +15,6 @@ cdk.out
 .build
 layers/build/*
 layers/**/package-lock.json
+
+# Runtime context - DO NOT IGNORE THIS IN PRODUCTION REPOS!
+cdk.context.json

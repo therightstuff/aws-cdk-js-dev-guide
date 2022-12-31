@@ -6,14 +6,11 @@
     "aws-cdk-js-dev-guide-dev": "bin/aws-cdk-js-dev-guide.js"
   },
   "scripts": {
-    "lint": "eslint . --ignore-path .gitignore",
-    "build": "npm run lint && node build-layers && tsc",
-    "build-no-layers": "npm run lint && tsc",
-    "watch": "tsc -w",
+    "build": "npm run lint && node build-layers && echo 'build in progress...\n' && tsc",
     "cdk": "cdk",
-    "synth": "npm run build && echo 'performing cdk synthesis...' && cdk synth",
-    "synth-no-layers": "npm run build-no-layers && echo 'performing cdk synthesis...' && cdk synth",
-    "package-upgrade": "node package-upgrade"
+    "lint": "echo 'linting...\n' && eslint . --ignore-path .gitignore",
+    "package-upgrade": "node package-upgrade",
+    "synth": "npm run build && echo 'performing cdk synthesis...\n' && cdk synth"
   },
   "repository": {
     "type": "git",
@@ -26,12 +23,12 @@
   },
   "homepage": "https://github.com/therightstuff/aws-cdk-js-dev-guide#readme",
   "dependencies": {
-    "@types/node": "18.11.17",
-    "aws-cdk-lib": "^2.56.1",
-    "aws-sdk": "^2.1282.0",
-    "constructs": "^10.1.200",
+    "@types/node": "18.11.18",
+    "aws-cdk-lib": "^2.58.1",
+    "aws-sdk": "^2.1286.0",
+    "constructs": "^10.1.205",
     "dotenv": "^16.0.3",
-    "eslint": "^8.30.0",
+    "eslint": "^8.31.0",
     "fs-extra": "^11.1.0",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.1",

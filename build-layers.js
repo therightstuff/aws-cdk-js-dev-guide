@@ -7,12 +7,12 @@ const fs = require("fs");
 const fse = require("fs-extra");
 const process = require("child_process");
 
-console.log('building layers...')
+console.log('building layers...\n')
 
 // ensure layers directory created
 fs.mkdirSync('layers/src', {recursive: true});
 
-console.log(`deleting previous build directories that don't have matching source directories...`);
+console.log(`deleting previous build directories that don't have matching source directories...\n`);
 let srcdirs = fs.readdirSync('layers/src', { withFileTypes: true })
     .filter(dirent => dirent.isDirectory())
     .map(dirent => dirent.name);
@@ -29,7 +29,7 @@ for (let i in builddirs) {
 
 for (let i in srcdirs) {
     let layer = srcdirs[i];
-    console.log(`\nprocessing layer ${layer}...`);
+    console.log(`processing layer ${layer}...`);
 
     let layerSrcPath = `layers/src/${layer}`
     let layerBuildPath = `layers/build/${layer}/nodejs`
@@ -44,7 +44,7 @@ for (let i in srcdirs) {
     let buildHash = fs.existsSync(buildHashFile) ? fs.readFileSync(buildHashFile, { encoding: 'utf8' }).trim() : null;
 
     if (hash == buildHash) {
-        console.log(`skipping ${layer}, no changes detected...`);
+        console.log(`skipping ${layer}, no changes detected...\n`);
         continue;
     }
 
@@ -76,7 +76,7 @@ for (let i in srcdirs) {
     console.log(`writing hash to ${buildHashFile}...`);
     fs.writeFileSync(buildHashFile, hash, { encoding: 'utf8' });
 
-    console.log(`${layer} folder build complete`);
+    console.log(`${layer} folder build complete\n`);
 }
 
-console.log('layer builds completed.')
+console.log('layer builds completed.\n')

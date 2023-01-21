@@ -2,12 +2,12 @@ import { Duration, RemovalPolicy, Stack, StackProps, CfnOutput } from 'aws-cdk-l
 import { AccessLogFormat, Cors, LambdaIntegration, LogGroupLogDestination, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { BackupPlan, BackupPlanRule, BackupResource } from 'aws-cdk-lib/aws-backup';
 import { DnsValidatedCertificate } from 'aws-cdk-lib/aws-certificatemanager';
-import { CloudFrontWebDistribution, OriginProtocolPolicy, SecurityPolicyProtocol, SSLMethod } from 'aws-cdk-lib/aws-cloudfront';
+import { CloudFrontWebDistribution, OriginProtocolPolicy, SecurityPolicyProtocol, SSLMethod, ViewerCertificate } from 'aws-cdk-lib/aws-cloudfront';
 import { AttributeType, BillingMode, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { Code, Function, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
-import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { ARecord, CnameRecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
@@ -353,27 +353,32 @@ export class AwsStack extends Stack {
       }
       new CfnOutput(this, "Site", { value: "https://" + domainName });
 
-      // create the site bucket for the naked domain
+      // create the site bucket
       const siteBucket = new Bucket(this, "static-website", {
         bucketName: domainName,
         websiteIndexDocument: "index.html",
-        publicReadAccess: false, // this will prevent the bucket from being browsable directly
+        publicReadAccess: true, // your bucket will be browsable directly via unsecured HTTP
         removalPolicy: RemovalPolicy.DESTROY, // NOT recommended for production code
         autoDeleteObjects: true, // NOT recommended for production code
       });
       new CfnOutput(this, "Bucket", { value: siteBucket.bucketName });
 
-      // TLS certificate
-      const certificateArn = new DnsValidatedCertificate(
+      const subdomainName = `www.${domainName}`;
+
+      // TLS certificate, see https://serverfault.com/a/1047117 for domain/subdomain configuration
+      const dnsValidatedCertificate = new DnsValidatedCertificate(
         this,
         "SiteCertificate",
         {
-          domainName,
+          domainName: domainName,
+          subjectAlternativeNames: [subdomainName],
           hostedZone: zone,
           region: "us-east-1", // Cloudfront only checks us-east-1 (N. Virginia) for certificates.
         }
-      ).certificateArn;
-      new CfnOutput(this, "Certificate", { value: certificateArn });
+      );
+      new CfnOutput(this, "Certificate", {
+        value: dnsValidatedCertificate.certificateArn
+      });
 
       // CloudFront distribution that provides HTTPS
       const distribution = new CloudFrontWebDistribution(
@@ -381,14 +386,14 @@ export class AwsStack extends Stack {
         "SiteDistribution",
         {
             viewerCertificate: {
-                aliases: [domainName],
-                props: {
-                    acmCertificateArn: certificateArn,
-                    sslSupportMethod: SSLMethod.SNI,
-                    minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_1_2016,
-                },
-            },
-            originConfigs: [
+              aliases: [domainName, subdomainName],
+              props: {
+                  acmCertificateArn: dnsValidatedCertificate.certificateArn,
+                  sslSupportMethod: SSLMethod.SNI,
+                  minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_1_2016,
+              },
+          },
+          originConfigs: [
                 {
                     customOriginSource: {
                         domainName: siteBucket.bucketWebsiteDomainName,
@@ -403,12 +408,19 @@ export class AwsStack extends Stack {
         value: distribution.distributionId,
       });
 
-      // Route53 alias record for the CloudFront distribution
+      // Route53 alias record for the naked domain's CloudFront distribution
       new ARecord(this, "SiteAliasRecord", {
         recordName: domainName,
         target: RecordTarget.fromAlias(
             new targets.CloudFrontTarget(distribution)
         ),
+        zone,
+      });
+
+      // Route53 alias record for a subdomain's CloudFront distribution
+      new CnameRecord(this, "SiteCnameRecord", {
+        recordName: subdomainName,
+        domainName: distribution.distributionDomainName,
         zone,
       });
 

@@ -222,7 +222,7 @@ For more details see [the API Gateway library documentation](https://docs.aws.am
 While I'm sure it's possible to create the required hosted zone using CDK, I'm not sure one would want to considering the need to point one's domain name to the AWS nameservers. Configuring the hosted zone is relatively straightforward using the AWS console:
 
 1. Open the AWS Console on the Route 53 service.
-2. Selected Hosted Zones and then Create Hosted Zone.
+2. Select Hosted Zones and then Create Hosted Zone.
 3. Enter your domain name (the naked domain eg. example.com) and select Public Hosted Zone.
 4. Once created, select the hosted zone's NS record and copy the nameserver values to your domain configuration with your domain name registrar.
 

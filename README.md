@@ -165,15 +165,13 @@ object as `event.pathParameters`.
 
 Querystring parameters will be available in the `event` object as `event.queryStringParameters`.
 
-NOTE: it is not possible to rename a path parameter, as cdk will attempt to deploy the new resource before removing the old one and it cannot deploy two resources with the same path structure. The workaround suggested on [the serverless issue thread](https://github.com/serverless/serverless/issues/3785) is to comment out the resource definition, deploy, then uncomment it and deploy again.
+NOTE: it is not possible to rename a path parameter, as CDK will attempt to deploy the new resource before removing the old one and it cannot deploy two resources with the same path structure. The workaround suggested on [the serverless issue thread](https://github.com/serverless/serverless/issues/3785) is to comment out the resource definition, deploy, then uncomment it and deploy again.
 
 ##### CORS
 
 CORS support can be configured on a single resource, or on a resource and all of its children.
 
 In order for CORS to be allowed it must be enabled on a RestApi resource AND the appropriate headers must be returned by the lambda function it calls.
-
-`lib/aws-cdk-js-dev-guide-stack.ts`:
 
 ```javascript
 // Enable CORS for all resources of an api

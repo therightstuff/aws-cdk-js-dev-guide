@@ -81,7 +81,15 @@ export class StaticWebsite {
                                 behaviors: [{ isDefaultBehavior: true }],
                             },
                         ],
-                    }
+                        errorConfigurations: [
+                            {
+                                errorCode: 404,
+                                errorCachingMinTtl: 1,
+                                responseCode: 404,
+                                responsePagePath: "/error.html",
+                            }
+                        ],
+                        }
                     );
                     new CfnOutput(stack, "DistributionId", {
                         value: distribution.distributionId,
@@ -104,9 +112,12 @@ export class StaticWebsite {
                         });
 
                         // Deploy the static website to the site bucket
+                        // The distribution must be specified in order to perform cache
+                        // invalidation, up to 1000 invalidations free per month
                         new BucketDeployment(stack, "static-website-deployment", {
                             sources: [Source.asset("./static-website")],
                             destinationBucket: siteBucket,
+                            distribution: distribution
                         });
                     }
                 }

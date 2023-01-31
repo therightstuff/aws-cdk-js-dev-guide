@@ -11,6 +11,7 @@ console.log('building layers...\n')
 
 // ensure layers directory created
 fs.mkdirSync('layers/src', {recursive: true});
+fs.mkdirSync('layers/build', {recursive: true});
 
 console.log(`deleting previous build directories that don't have matching source directories...\n`);
 let srcdirs = fs.readdirSync('layers/src', { withFileTypes: true })

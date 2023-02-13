@@ -28,7 +28,7 @@
     "aws-sdk": "^2.1308.0",
     "constructs": "^10.1.239",
     "dotenv": "^16.0.3",
-    "eslint": "^8.33.0",
+    "eslint": "^8.34.0",
     "fs-extra": "^11.1.0",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.1",

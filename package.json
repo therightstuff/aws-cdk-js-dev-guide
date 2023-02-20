@@ -26,7 +26,7 @@
     "@types/node": "18.11.18",
     "aws-cdk-lib": "^2.63.0",
     "aws-sdk": "^2.1308.0",
-    "constructs": "^10.1.239",
+    "constructs": "^10.1.255",
     "dotenv": "^16.0.3",
     "eslint": "^8.33.0",
     "fs-extra": "^11.1.0",

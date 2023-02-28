@@ -3,6 +3,7 @@ import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { AwsStack } from './aws-cdk-js-dev-guide-stack';
+import { aws_logs as logs } from 'aws-cdk-lib';
 
 export class SQSComponents {
     constructor(stack: AwsStack, id: string, props?: StackProps, customOptions?: any) {
@@ -17,7 +18,8 @@ export class SQSComponents {
                 QUEUE_URL: sqsQueue.queueUrl,
                 TABLE_NAME: stack.dynamodbTable.tableName
             },
-            layers: [stack.layer]
+            layers: [stack.layer],
+            logRetention: logs.RetentionDays.THREE_MONTHS,
         });
 
         sqsQueue.grantSendMessages(queuePublishFunction);
@@ -30,7 +32,8 @@ export class SQSComponents {
                 QUEUE_URL: sqsQueue.queueUrl,
                 TABLE_NAME: stack.dynamodbTable.tableName
             },
-            layers: [stack.layer]
+            layers: [stack.layer],
+            logRetention: logs.RetentionDays.THREE_MONTHS,
         });
 
         // WARNING: unlike the rest of the serverless resources, setting up an

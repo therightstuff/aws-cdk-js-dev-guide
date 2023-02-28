@@ -1,5 +1,4 @@
 const fs = require("fs");
-const fse = require("fs-extra");
 const childProcess = require("child_process");
 
 console.log(`updating cdk project packages`);

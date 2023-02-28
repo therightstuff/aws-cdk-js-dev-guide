@@ -217,6 +217,8 @@ For more details see [the API Gateway library documentation](https://docs.aws.am
 
 #### Domains and Static Websites
 
+##### Hosted Zone Management
+
 While I'm sure it's possible to create the required hosted zone using CDK, I'm not sure one would want to considering the need to point one's domain name to the AWS nameservers. Configuring the hosted zone is relatively straightforward using the AWS console:
 
 1. Open the AWS Console on the Route 53 service.
@@ -227,6 +229,22 @@ While I'm sure it's possible to create the required hosted zone using CDK, I'm n
 WARNING: If the domain is not configured correctly using the hosted zone's nameservers prior to deployment, the certificate will not be validated and there's a good chance the stack will require manual intervention to rollback the changes or delete it.
 
 See [https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/CreatingHostedZone.html](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/CreatingHostedZone.html) for more details.
+
+##### Certificate Stack Configuration
+
+Certificates can only be hosted in the `us-east-1` region (N. Virginia), and the `DnsValidatedCertificate` construct I originally used has been deprecated in favor of the `Certificate` construct, which does not support specifying the certificate's region.
+
+To set up a certificate for a stack that's hosted in a different region, you need to create a separate certificate stack and inject its hosted zone and certificate objects into your primary stacks.
+
+##### Deploying a Certificate Stack
+
+There is no need to explicitly deploy certificate stacks, as they will be direct dependencies of their respective primary stacks and will be deployed automatically along with them.
+
+##### Multiple Projects Per Domain
+
+Separate CDK projects in separate repositories are able to use a shared domain / hosted zone as long as there are no DNS record conflicts. For example, one project can create an A record for the naked domain (eg. [https://example.com](https://example.com)) and the second project can create a CNAME record for a subdomain (eg. [https://abc.example.com](https://abc.example.com)).
+
+Each project must create its own certificates, and secondary projects (ie. projects that do not manage the A records) must always use the fully qualified domain name (FQDN) instead of the domain name.
 
 ### Deployment
 

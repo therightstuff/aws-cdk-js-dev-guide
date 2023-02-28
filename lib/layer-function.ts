@@ -2,6 +2,7 @@ import { StackProps } from 'aws-cdk-lib';
 import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Code, Function, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AwsStack } from './aws-cdk-js-dev-guide-stack';
+import { aws_logs as logs } from 'aws-cdk-lib';
 
 export class LayerFunction {
     constructor(stack: AwsStack, id: string, props?: StackProps, customOptions?: any) {
@@ -19,7 +20,8 @@ export class LayerFunction {
             runtime: Runtime.NODEJS_16_X,
             handler: 'index.handler',
             code: Code.fromAsset('./handlers/layer'),
-            layers: [layer]
+            layers: [layer],
+            logRetention: logs.RetentionDays.THREE_MONTHS,
         });
 
         // layer api

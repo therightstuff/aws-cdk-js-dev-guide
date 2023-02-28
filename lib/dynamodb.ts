@@ -3,6 +3,7 @@ import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { AttributeType, BillingMode, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AwsStack } from './aws-cdk-js-dev-guide-stack';
+import { aws_logs as logs } from 'aws-cdk-lib';
 
 export class DynamoDbComponents {
     constructor(stack: AwsStack, id: string, props?: StackProps, customOptions?: any) {
@@ -40,7 +41,8 @@ export class DynamoDbComponents {
                 TABLE_NAME: dynamodbTable.tableName,
                 DDB_GSI_NAME
             },
-            layers: [stack.layer]
+            layers: [stack.layer],
+            logRetention: logs.RetentionDays.THREE_MONTHS,
         });
 
         dynamodbTable.grantReadData(dynamodbGetFunction);
@@ -53,7 +55,8 @@ export class DynamoDbComponents {
                 ...stack.cors.corsEnvironment,
                 TABLE_NAME: dynamodbTable.tableName
             },
-            layers: [stack.layer]
+            layers: [stack.layer],
+            logRetention: logs.RetentionDays.THREE_MONTHS,
         });
 
         dynamodbTable.grantReadData(dynamodbScanFunction);
@@ -69,7 +72,8 @@ export class DynamoDbComponents {
                 ...stack.cors.corsEnvironment,
                 TABLE_NAME: dynamodbTable.tableName
             },
-            layers: [stack.layer]
+            layers: [stack.layer],
+            logRetention: logs.RetentionDays.THREE_MONTHS,
         });
 
         dynamodbTable.grantWriteData(dynamodbCreateFunction);
@@ -83,7 +87,8 @@ export class DynamoDbComponents {
                 TABLE_NAME: dynamodbTable.tableName,
                 DDB_GSI_NAME
             },
-            layers: [stack.layer]
+            layers: [stack.layer],
+            logRetention: logs.RetentionDays.THREE_MONTHS,
         });
 
         // the update itself doesn't require read permissions, but we may need to query

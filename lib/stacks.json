@@ -1,0 +1,10 @@
+{
+    "dev-us": {
+        "description": "sample dev stack in us-east-1",
+        "region": "us-east-1",
+        "account": "{{AWS_ACCOUNT_NO}}",
+        "corsOrigin": "*",
+        "domainName": "example.com",
+        "subdomainNames": [ "www" ]
+    }
+}

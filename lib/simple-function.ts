@@ -3,6 +3,7 @@ import { AccessLogFormat, LambdaIntegration, LogGroupLogDestination, RestApi } f
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { AwsStack } from './aws-cdk-js-dev-guide-stack';
+import { aws_logs as logs } from 'aws-cdk-lib';
 
 export class SimpleFunction {
     constructor(stack: AwsStack, id: string, props?: StackProps, customOptions?: any) {
@@ -15,14 +16,15 @@ export class SimpleFunction {
                 HELLO: "Hello",
                 WORLD: "World"
             },
-            timeout: Duration.seconds(2)
+            logRetention: logs.RetentionDays.THREE_MONTHS,
+            timeout: Duration.seconds(2),
         });
 
         // simple REST api interface
 
         // configure log group for RestApi access logs
         const simpleFunctionAccessLogGroup = new LogGroup(stack, 'simple-function-access-log-group', {
-            logGroupName: `apigateway/${customOptions.stackName}-simple-function`,
+            logGroupName: `apigateway/${id}-simple-function`,
             retention: 1 // retention in days
             // see https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-logs.LogGroup.html
         });

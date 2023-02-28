@@ -3,6 +3,7 @@ import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { AwsStack } from './aws-cdk-js-dev-guide-stack';
+import { aws_logs as logs } from 'aws-cdk-lib';
 
 export class ScheduledFunction {
     constructor(stack: AwsStack, id: string, props?: StackProps, customOptions?: any) {
@@ -10,7 +11,8 @@ export class ScheduledFunction {
             runtime: Runtime.NODEJS_16_X,
             handler: 'index.handler',
             code: Code.fromAsset('./handlers/scheduled'),
-            timeout: Duration.seconds(2)
+            logRetention: logs.RetentionDays.THREE_MONTHS,
+            timeout: Duration.seconds(2),
         });
 
         // configure rule for a scheduled function

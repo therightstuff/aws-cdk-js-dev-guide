@@ -39,7 +39,7 @@ export class AwsStack extends Stack {
         }
 
         // set default CORS origin to ALL_ORIGINS
-        const corsOrigin = customOptions.origin || "*";
+        const corsOrigin = customOptions.corsOrigin || "*";
 
         this.cors = {
             corsOrigin,

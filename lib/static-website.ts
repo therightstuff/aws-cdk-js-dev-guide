@@ -21,7 +21,6 @@ export class StaticWebsite {
                 autoDeleteObjects: true, // NOT recommended for production code
             });
 
-
             // CloudFront distribution that provides HTTPS
             const distribution = new CloudFrontWebDistribution(
                 stack,

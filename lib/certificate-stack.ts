@@ -26,7 +26,7 @@ export class CertificateStack extends Stack {
                 domainName,
             });
         } catch (err) {
-            throw new WrappedError(`Hosted zone not found for stack ${stack.stackId} in region us-east-1.`, err);
+            throw new WrappedError(`Hosted zone not found for stack ${id} in region us-east-1.`, err);
         }
 
         // TLS certificate, see https://serverfault.com/a/1047117 for domain/subdomain configuration

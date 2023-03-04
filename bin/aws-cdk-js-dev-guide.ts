@@ -26,7 +26,7 @@ for (let name in stacks) {
                 env: {
                     "region": "us-east-1",
                     "account": stack.account,
-                },
+                }
             }, stack
         );
         cdk.Tags.of(certificateStackInstance).add('stack-name', certificateStackName);
@@ -36,22 +36,19 @@ for (let name in stacks) {
         stack.certificate = certificateStackInstance.certificate;
     }
 
-    let regionOptions;
     let stackName = `AwsStack-${name}`;
-    if (!stack.region) {
-        // deploy region-agnostic when no region is specified
-        regionOptions = undefined;
-    } else {
-        regionOptions = {
-            env: {
-                "region": stack.region,
-                "account": stack.account,
-            }
-        };
-    }
+    let stackProps: cdk.StackProps = {
+        env: stack.region ? {
+            "region": stack.region,
+            "account": stack.account,
+        } : undefined,
+        // this is to enable access to the certificate stack resources
+        crossRegionReferences: true
+    };
+
     let stackInstance = new AwsStack(
         app, stackName,
-        regionOptions,
+        stackProps,
         stack
     );
     cdk.Tags.of(stackInstance).add('stack-name', stackName);

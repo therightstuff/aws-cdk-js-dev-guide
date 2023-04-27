@@ -52,8 +52,7 @@ Copy the following as-is to your new project:
 |- `package-upgrade.js`
 |- `tsconfig.json`
 |- `/lib`
-    |- `regions.json`
-    |- `stages.json`
+    |- `stacks.json`
 ```
 
 Additionally, you will need to copy the npm script definitions from `package.json`, the `bin/aws-cdk-js-dev-guide.ts` file (with the stack name modified to match your new project), and modify the signature of `lib/aws-cdk-js-dev-guide-stack.ts` to accept custom options.
@@ -79,7 +78,7 @@ See [AWS CDK API documentation](https://docs.aws.amazon.com/cdk/api/latest/guide
 
 #### Sensitive data (using .env files)
 
-While it's useful to set up stack customizations in the `/lib` folder, it's not a good idea to keep your sensitive secrets in those files as they're at risk of being accidentally checked in. As an alternative, it's recommended to use `dotenv`. `/bin/aws-cdk-js-dev-guide.ts` uses `/bin/load-sensitive-json.ts` to ingest the `/lib/regions.json` and replace anything surrounded by double braces with the value of the environment variable of the same name.
+While it's useful to set up stack customizations in the `/lib` folder, it's not a good idea to keep your sensitive secrets in those files as they're at risk of being accidentally checked in. As an alternative, it's recommended to use `dotenv`. `/bin/aws-cdk-js-dev-guide.ts` uses `/bin/load-sensitive-json.ts` to ingest the `/lib/stacks.json` and replace anything surrounded by double braces with the value of the environment variable of the same name.
 
 To get started, you can copy the `.env.template` file in the project root folder to `.env` and insert your AWS account number where specified.
 
@@ -211,7 +210,7 @@ resolve({
 });
 ```
 
-NOTE: This project defines an origin per stack in the `lib/stages.json` file, which requires a modification to the `AwsStack` signature. This is not a CDK requirement, you should configure it in any way that suits your purposes.
+NOTE: This project defines an origin per stack in the `lib/stacks.json` file, which requires a modification to the `AwsStack` signature. This is not a CDK requirement, you should configure it in any way that suits your purposes.
 
 For more details see [the API Gateway library documentation](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_apigateway-readme.html), and [the CORS documentation](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_apigateway.Cors.html) in particular.
 
@@ -253,9 +252,7 @@ To enable environment-agnostic deployments, run `cdk bootstrap` before `cdk depl
 
 **NOTE**: While environment-agnostic deployments are usually possible, there are certain constructs that are simply incompatible. See the `WrappedError` from the Hosted Zone lookup for an example of this.
 
-To deploy to specific regions, update the `bin/regions.json` file with the desired region and account numbers.
-
-An example for stack configuration has been provided in `lib/stages.json`.
+To deploy to specific regions, update the `bin/stacks.json` file with the desired region and account numbers. Remember, the `stacks.json` file is simply a suggestion and you can manage your configurations any way you like.
 
 To deploy a stack, `cdk deploy <stack name>` (wildcards are supported).
 

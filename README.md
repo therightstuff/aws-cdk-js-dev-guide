@@ -36,7 +36,7 @@ The first step to creating a CDK project is to create a project folder and initi
 To be able to run the build scripts, execute the following command:
 
 ```bash
-npm install --save eslint fs-extra
+npm install --save dotenv eslint fs-extra simple-recursive-checksum
 ```
 
 Copy the following as-is to your new project:

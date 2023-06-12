@@ -1,9 +1,8 @@
-import { StackProps } from 'aws-cdk-lib';
+import { StackProps, aws_logs as logs } from 'aws-cdk-lib';
 import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { AttributeType, BillingMode, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AwsStack } from './aws-cdk-js-dev-guide-stack';
-import { aws_logs as logs } from 'aws-cdk-lib';
 
 export class DynamoDbComponents {
     constructor(stack: AwsStack, id: string, props?: StackProps, customOptions?: any) {

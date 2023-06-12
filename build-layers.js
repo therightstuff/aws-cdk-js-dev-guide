@@ -83,8 +83,8 @@ async function main() {
 
         console.log(`${layer} folder build complete\n`);
     }
-
-    console.log('layer builds completed.\n')
 }
 
-main();
+main().then(()=>{
+    console.log('layer builds completed.\n');
+});

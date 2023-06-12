@@ -4,11 +4,11 @@ import { BackupPlan, BackupPlanRule, BackupResource } from 'aws-cdk-lib/aws-back
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { LayerVersion } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
-import { SimpleFunction } from './simple-function';
-import { LayerFunction } from './layer-function';
 import { DynamoDbComponents } from './dynamodb';
-import { SQSComponents } from './sqs';
+import { LayerFunction } from './layer-function';
 import { ScheduledFunction } from './scheduled-function';
+import { SimpleFunction } from './simple-function';
+import { SQSComponents } from './sqs';
 import { StaticWebsite } from './static-website';
 
 export class AwsStack extends Stack {

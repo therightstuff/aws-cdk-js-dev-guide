@@ -1,9 +1,9 @@
-import { StackProps } from 'aws-cdk-lib';
+import { StackProps, aws_logs as logs } from 'aws-cdk-lib';
 import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { AwsStack } from './aws-cdk-js-dev-guide-stack';
-import { aws_logs as logs } from 'aws-cdk-lib';
 
 export class SQSComponents {
     constructor(stack: AwsStack, id: string, props?: StackProps, customOptions?: any) {
@@ -36,21 +36,12 @@ export class SQSComponents {
             logRetention: logs.RetentionDays.THREE_MONTHS,
         });
 
-        // WARNING: unlike the rest of the serverless resources, setting up an
-        //          SQS queue event listener incurs costs even when there's no
-        //          activity (something in the order of 50 cents/month). From
-        //          https://aws.amazon.com/blogs/aws/aws-lambda-adds-amazon-simple-queue-service-to-supported-event-sources/
-        //    "There are no additional charges for this feature, but because the
-        //     Lambda service is continuously long-polling the SQS queue the
-        //     account will be charged for those API calls at the standard SQS
-        //     pricing rates."
-        /* set up a queue event listener
+        // set up a queue event listener
         let queueEventSource = new SqsEventSource(sqsQueue, {
             batchSize: 10 // default
         });
 
         queueSubscribeFunction.addEventSource(queueEventSource);
-        */
 
         stack.dynamodbTable.grantWriteData(queueSubscribeFunction);
 

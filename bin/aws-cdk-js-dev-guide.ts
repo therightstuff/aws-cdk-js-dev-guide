@@ -19,7 +19,7 @@ let stacks:any = loadSensitiveJson(path.resolve(__dirname, '../lib/stacks.json')
 for (let name in stacks) {
     let stack:any = stacks[name];
 
-    if (stack.domainName) {
+    if (stack.domainName && stack.resources.includes("static-website")) {
         let certificateStackName = `AwsStack-Cert-${name}`;
         let certificateStackInstance = new CertificateStack(
             app, certificateStackName, {

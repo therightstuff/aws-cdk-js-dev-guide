@@ -5,6 +5,15 @@
         "account": "{{AWS_ACCOUNT_NO}}",
         "corsOrigin": "*",
         "domainName": "example.com",
-        "subdomainNames": [ "www" ]
+        "subdomainNames": [ "www" ],
+        "resources": [
+            "backup-plan // disabled due to cost",
+            "dynamodb-components",
+            "lambda-layer",
+            "scheduled-function // disabled to avoid wasted resources",
+            "simple-function",
+            "sqs-components // disabled due to cost",
+            "static-website // disabled due to cost, requires valid /owned/ domainName"
+        ]
     }
 }

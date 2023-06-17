@@ -10,10 +10,12 @@
             "backup-plan // disabled due to cost",
             "dynamodb-components",
             "lambda-layer",
+            "rds // disabled due to cost",
             "scheduled-function // disabled to avoid wasted resources",
             "simple-function",
             "sqs-components // disabled due to cost",
-            "static-website // disabled due to cost, requires valid /owned/ domainName"
+            "static-website // disabled due to cost, requires valid /owned/ domainName",
+            "vpc"
         ]
     }
 }

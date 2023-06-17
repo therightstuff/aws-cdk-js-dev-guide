@@ -2,14 +2,17 @@ import { Stack, StackProps } from 'aws-cdk-lib';
 import { Cors, LambdaIntegration } from 'aws-cdk-lib/aws-apigateway';
 import { BackupPlan, BackupPlanRule, BackupResource } from 'aws-cdk-lib/aws-backup';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
+import { SecurityGroup, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { LayerVersion } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 import { DynamoDbComponents } from './dynamodb';
 import { LayerFunction } from './layer-function';
+import { RdsDatabase } from './rds-database';
 import { ScheduledFunction } from './scheduled-function';
 import { SimpleFunction } from './simple-function';
 import { SQSComponents } from './sqs';
 import { StaticWebsite } from './static-website';
+import { VpcResources } from './vpc-resources';
 
 export class AwsStack extends Stack {
     // properties shared between the different sample components
@@ -17,6 +20,8 @@ export class AwsStack extends Stack {
     dynamodbScanFunctionIntegration: LambdaIntegration;
     dynamodbTable: Table;
     layer: LayerVersion;
+    securityGroup: SecurityGroup;
+    vpc: Vpc;
 
     constructor(scope: Construct, id: string, props?: StackProps, customOptions?: any) {
         super(scope, id, props);
@@ -54,6 +59,11 @@ export class AwsStack extends Stack {
                 allowMethods: Cors.ALL_METHODS, // array of methods eg. [ 'OPTIONS', 'GET', 'POST', 'PUT', 'DELETE' ]
             }
         };
+
+        if (resources.includes("vpc")
+            || resources.includes("rds")) {
+            new VpcResources(this, id, props, customOptions);
+        }
 
         if (resources.includes("simple-function")) {
             new SimpleFunction(this, id, props, customOptions);
@@ -102,6 +112,14 @@ export class AwsStack extends Stack {
         //          See https://aws.amazon.com/route53/pricing/ for more details.
         if (resources.includes("static-website")) {
             new StaticWebsite(this, id, props, customOptions);
+        }
+
+        // CAUTION: RDS instances are not free, nor is their usage (although costs
+        //          might be covered by your free tier). Review the pricing before
+        //          enabling this resource.
+        //          See https://aws.amazon.com/rds/pricing/ for more details.
+        if (resources.includes("rds")) {
+            new RdsDatabase(this, id, props, customOptions);
         }
     }
 }

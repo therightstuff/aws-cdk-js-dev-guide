@@ -1,5 +1,5 @@
-import fs from 'fs';
 import dotenv from "dotenv";
+import fs from 'fs';
 dotenv.config();
 
 const getNextPlaceholder = (body: string) => {
@@ -11,7 +11,11 @@ const loadSensitiveJson = (path: string) => {
   let obj = fs.readFileSync(path, 'utf8');
   // while there are more placeholders
   for (let match = getNextPlaceholder(obj); match; match = getNextPlaceholder(obj)) {
-    obj = obj.replace(`{{${match}}}`, process.env[match] || '');
+    let value = process.env[match] ?? '';
+    if (value.length === 0) {
+      throw new Error(`Missing environment variable "${match}"`);
+    }
+    obj = obj.replace(`{{${match}}}`, value);
   }
   return JSON.parse(obj);
 };

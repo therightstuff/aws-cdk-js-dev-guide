@@ -25,7 +25,7 @@
   "dependencies": {
     "@types/node": "20.3.1",
     "aws-cdk-lib": "^2.85.0",
-    "aws-sdk": "^2.1404.0",
+    "aws-sdk": "^2.1406.0",
     "constructs": "^10.2.57",
     "dotenv": "^16.3.1",
     "eslint": "^8.43.0",

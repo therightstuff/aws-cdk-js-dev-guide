@@ -4,6 +4,9 @@ import { AwsStack } from './aws-cdk-js-dev-guide-stack';
 
 export class VpcResources {
     constructor(stack: AwsStack, id: string, props?: StackProps, customOptions?: any) {
+        // WARNING: setting up a VPC incurs costs even when there's no activity
+        //          (a minimum of $0.045 per hour even with no throughput).
+        //          See https://aws.amazon.com/vpc/pricing/
         stack.vpc = new Vpc(stack, `vpc-${id}`, {
             vpcName: `vpc-${id}`,
             ipAddresses: IpAddresses.cidr('10.0.0.0/16'),

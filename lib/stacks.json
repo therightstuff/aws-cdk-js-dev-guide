@@ -15,7 +15,7 @@
             "simple-function",
             "sqs-components // disabled due to cost",
             "static-website // disabled due to cost, requires valid /owned/ domainName",
-            "vpc"
+            "vpc // disabled due to cost"
         ]
     }
 }

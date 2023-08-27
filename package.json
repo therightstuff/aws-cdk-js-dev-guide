@@ -6,10 +6,10 @@
     "aws-cdk-js-dev-guide-dev": "bin/aws-cdk-js-dev-guide.js"
   },
   "scripts": {
-    "build": "npm run lint && node build-layers && echo 'build in progress...' && tsc",
+    "build": "npm run lint && node tools/build-layers && echo 'build in progress...' && tsc",
     "cdk": "cdk",
     "lint": "echo 'linting...' && eslint . --ignore-path .gitignore",
-    "package-upgrade": "node package-upgrade",
+    "package-upgrade": "node tools/package-upgrade",
     "synth": "npm run build && echo 'performing cdk synthesis...' && cdk synth"
   },
   "repository": {
@@ -23,16 +23,16 @@
   },
   "homepage": "https://github.com/therightstuff/aws-cdk-js-dev-guide#readme",
   "dependencies": {
-    "@types/node": "20.3.3",
-    "aws-cdk-lib": "^2.86.0",
-    "aws-sdk": "^2.1409.0",
-    "constructs": "^10.2.66",
+    "@types/node": "20.5.6",
+    "aws-cdk-lib": "^2.93.0",
+    "aws-sdk": "^2.1445.0",
+    "constructs": "^10.2.69",
     "dotenv": "^16.3.1",
-    "eslint": "^8.44.0",
+    "eslint": "^8.48.0",
     "fs-extra": "^11.1.1",
-    "simple-recursive-checksum": "^0.0.11",
+    "simple-recursive-checksum": "^0.0.12",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.1",
-    "typescript": "~5.1.6"
+    "typescript": "~5.2.2"
   }
 }

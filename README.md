@@ -43,16 +43,18 @@ Copy the following as-is to your new project:
 
 ```text
 - /aws-cdk-js-dev-guide
+|- `/bin`
+    |- `/load-sensitive-json.ts`
+|- `/lib`
+    |- `stacks.json`
+|- `/tools`
+    |- `build-layers.js`
+    |- `package-upgrade.js`
+    |- `persistent-shell.js`
 |- `.eslintc`
 |- `.gitignore`
 |- `.npmignore`
-|- `/bin`
-    |- `/load-sensitive-json.ts`
-|- `build-layers.js`
-|- `package-upgrade.js`
 |- `tsconfig.json`
-|- `/lib`
-    |- `stacks.json`
 ```
 
 Additionally, you will need to copy the npm script definitions from `package.json`, the `bin/aws-cdk-js-dev-guide.ts` file (with the stack name modified to match your new project), and modify the signature of `lib/aws-cdk-js-dev-guide-stack.ts` to accept custom options.

@@ -22,7 +22,9 @@ function getValidSubDirectories(path) {
 async function processLayer(layer) {
     console.log(`processing layer ${layer}...`);
 
-    let layerSrcPath = path.join(LAYER_SRC_PATH, layer);
+    const layerSrcPath = path.join(LAYER_SRC_PATH, layer);
+
+    const isWindowsPlatform = process.platform === "win32";
 
     const packageJsonExists = fs.existsSync(path.join(layerSrcPath, 'package.json'));
     const setupPyExists = fs.existsSync(path.join(layerSrcPath ,'setup.py'));
@@ -34,13 +36,13 @@ async function processLayer(layer) {
         console.log(`unable to identify supported runtime for layer ${layer}, skipping...`);
         return;
     }
-    let layerBuildPath = path.join(LAYER_BUILD_PATH, layer);
+    const layerBuildPath = path.join(LAYER_BUILD_PATH, layer);
 
-    let hash = await checksumDirectory(layerSrcPath, 'md5');
+    const hash = await checksumDirectory(layerSrcPath, 'md5');
 
     // if the hash matches the hash in the build directory, skip this layer
-    let buildHashFile = `${layerBuildPath}.md5`;
-    let buildHash = fs.existsSync(buildHashFile) ?
+    const buildHashFile = `${layerBuildPath}.md5`;
+    const buildHash = fs.existsSync(buildHashFile) ?
         fs.readFileSync(buildHashFile, { encoding: 'utf8' }).trim()
         : null;
 
@@ -57,10 +59,10 @@ async function processLayer(layer) {
 
         // if the layer has npm package files, we have a node.js layer
         if (packageJsonExists) {
-            let nodeJsContentsPath = path.join(layerBuildPath, 'nodejs');
+            const nodeJsContentsPath = path.join(layerBuildPath, 'nodejs');
             fs.mkdirSync(nodeJsContentsPath, { recursive: true });
             // copy everything except the package-lock file and node_modules
-            let srcContents = fs.readdirSync(layerSrcPath, { withFileTypes: true })
+            const srcContents = fs.readdirSync(layerSrcPath, { withFileTypes: true })
                 .filter(dirent => {
                     return !(
                         dirent.name == "node_modules" ||
@@ -68,7 +70,7 @@ async function processLayer(layer) {
                     )
                 })
                 .map(dirent => dirent.name)
-            for (let file of srcContents) {
+            for (const file of srcContents) {
                 fse.copySync(
                     path.join(layerSrcPath, file),
                     path.join(nodeJsContentsPath, file)
@@ -86,14 +88,14 @@ async function processLayer(layer) {
 
         // if the layer has a setup.py or requirements.txt file, we have a python layer
         if (setupPyExists || requirementsTxtExists) {
-            let pythonContentsPath = path.join(layerBuildPath, 'python');
+            const pythonContentsPath = path.join(layerBuildPath, 'python');
             fs.mkdirSync(pythonContentsPath, { recursive: true });
 
             console.log("recreating virtual environment...");
-            let shell = getPersistentShell();
+            const shell = getPersistentShell();
             shell.execCmd(`cd ${layerSrcPath}`);
             shell.execCmd(`python3 -m venv venv`);
-            const activateScript = process.platform === "win32" ?
+            const activateScript = isWindowsPlatform ?
                 path.join("venv","Scripts","activate.bat")
                 : ". venv/bin/activate";
             shell.execCmd(activateScript);
@@ -115,13 +117,19 @@ async function processLayer(layer) {
                 shell.execCmd(`python3 -m pip install --target ${pythonContentsPath} --upgrade -r requirements.txt`);
             }
 
+            // remove virtual environment to preserve original hash
+            // use shell commands and not fs.rm because the venv
+            // folder is locked and fm.rs fails silently
+            console.log(`removing virtual environment from source path...`);
+            if (isWindowsPlatform) {
+                shell.execCmd(`rmdir /s /q venv`);
+            } else {
+                shell.execCmd(`rm -rf venv`);
+            }
+
             shell.execCmd(`exit`);
             // uncomment the following to debug:
             // console.log(await shell.finalResult);
-
-            // remove virtual environment to preserve original hash
-            console.log("removing virtual environment from source path...");
-            fs.rmSync(path.join(layerSrcPath, "venv"), { recursive: true, force: true });
         }
 
         console.log(`writing hash to ${buildHashFile}...`);

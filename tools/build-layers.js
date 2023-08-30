@@ -27,10 +27,11 @@ async function processLayer(layer) {
     const isWindowsPlatform = process.platform === "win32";
 
     const packageJsonExists = fs.existsSync(path.join(layerSrcPath, 'package.json'));
+    const packageLockExists = fs.existsSync(path.join(layerSrcPath, 'package-lock.json'));
     const setupPyExists = fs.existsSync(path.join(layerSrcPath ,'setup.py'));
     const requirementsTxtExists = fs.existsSync(path.join(layerSrcPath, 'requirements.txt'));
 
-    const isNodeJsLayer = packageJsonExists;
+    const isNodeJsLayer = packageJsonExists || packageLockExists;
     const isPythonLayer = setupPyExists || requirementsTxtExists;
     if (!isNodeJsLayer && !isPythonLayer) {
         console.log(`unable to identify supported runtime for layer ${layer}, skipping...`);
@@ -58,17 +59,17 @@ async function processLayer(layer) {
         fs.rmSync(layerBuildPath, { recursive: true, force: true });
 
         // if the layer has npm package files, we have a node.js layer
-        if (packageJsonExists) {
+        if (packageJsonExists || packageLockExists) {
             const nodeJsContentsPath = path.join(layerBuildPath, 'nodejs');
+            // delete the nodejs folder if it exists
+            if (fs.existsSync(nodeJsContentsPath)) {
+                fs.rmSync(nodeJsContentsPath, { recursive: true, force: true });
+            }
+            // (re)create the nodejs folder
             fs.mkdirSync(nodeJsContentsPath, { recursive: true });
-            // copy everything except the package-lock file and node_modules
+            // copy everything except the node_modules
             const srcContents = fs.readdirSync(layerSrcPath, { withFileTypes: true })
-                .filter(dirent => {
-                    return !(
-                        dirent.name == "node_modules" ||
-                        dirent.name == "package-lock.json"
-                    )
-                })
+                .filter(dirent => dirent.name != "node_modules")
                 .map(dirent => dirent.name)
             for (const file of srcContents) {
                 fse.copySync(
@@ -78,12 +79,11 @@ async function processLayer(layer) {
             }
 
             console.log("installing npm dependencies...");
-            spawn.execSync('npm install --force', { cwd: nodeJsContentsPath });
-            console.log("pruning unused npm modules...");
-            spawn.execSync('npm prune', { cwd: nodeJsContentsPath });
-
-            console.log("removing package-lock.json...");
-            fs.unlinkSync(path.join(nodeJsContentsPath, 'package-lock.json'));
+            if (packageLockExists) {
+                spawn.execSync('npm ci', { cwd: nodeJsContentsPath });
+            } else {
+                spawn.execSync('npm install', { cwd: nodeJsContentsPath });
+            }
         }
 
         // if the layer has a setup.py or requirements.txt file, we have a python layer

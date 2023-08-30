@@ -61,10 +61,6 @@ async function processLayer(layer) {
         // if the layer has npm package files, we have a node.js layer
         if (packageJsonExists || packageLockExists) {
             const nodeJsContentsPath = path.join(layerBuildPath, 'nodejs');
-            // delete the nodejs folder if it exists
-            if (fs.existsSync(nodeJsContentsPath)) {
-                fs.rmSync(nodeJsContentsPath, { recursive: true, force: true });
-            }
             // (re)create the nodejs folder
             fs.mkdirSync(nodeJsContentsPath, { recursive: true });
             // copy everything except the node_modules

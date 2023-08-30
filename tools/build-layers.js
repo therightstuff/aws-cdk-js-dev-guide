@@ -58,8 +58,7 @@ async function processLayer(layer) {
         console.log(`(re)creating build directory...`);
         fs.rmSync(layerBuildPath, { recursive: true, force: true });
 
-        // if the layer has npm package files, we have a node.js layer
-        if (packageJsonExists || packageLockExists) {
+        if (isNodeJsLayer) {
             const nodeJsContentsPath = path.join(layerBuildPath, 'nodejs');
             // (re)create the nodejs folder
             fs.mkdirSync(nodeJsContentsPath, { recursive: true });
@@ -75,18 +74,16 @@ async function processLayer(layer) {
             }
 
             console.log("installing npm dependencies...");
-            if (packageLockExists) {
-                spawn.execSync('npm ci', { cwd: nodeJsContentsPath });
-            } else {
-                spawn.execSync('npm install', { cwd: nodeJsContentsPath });
-            }
+            const npmCommand = packageLockExists ? 'ci' : 'install';
+            spawn.execSync(`npm ${npmCommand}`, { cwd: nodeJsContentsPath });
         }
 
-        // if the layer has a setup.py or requirements.txt file, we have a python layer
-        if (setupPyExists || requirementsTxtExists) {
+        if (isPythonLayer) {
             const pythonContentsPath = path.join(layerBuildPath, 'python');
             fs.mkdirSync(pythonContentsPath, { recursive: true });
 
+            // NOTE: depending on your Windows configuration, you may have
+            //       to use "python" instead of "python3"
             console.log("recreating virtual environment...");
             const shell = getPersistentShell();
             shell.execCmd(`cd ${layerSrcPath}`);

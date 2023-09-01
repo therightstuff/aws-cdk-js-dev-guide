@@ -142,11 +142,25 @@ Lambda functions MUST return responses in the following format:
 
 Layers are composite packages that multiple lambda functions can reference.
 
-To create a layer, simply add a `<layer name>` folder in the `layers/src` directory that includes a `package.json` file. When the `npm run build` command is run, the packages are installed and the layer archive is produced and copied into the `layers/build` directory.
+To create a layer, simply add a subfolder in the `layers/src` directory that includes one or more of the following files:
+
+- `package.json`
+- `package-lock.json`
+- `setup.py`
+- `requirements.txt`
+
+When the `npm run build` command is run, the packages will be installed into the matching `layers/build` subfolder, and the layer archive will be produced from there.
+
+Notes:
+
+- A `package-lock.json` file will take precedence over `package.json` (ie. `npm ci` will be used instead of `npm install`).
+- If none of the above files are available, the folder will be skipped by the build script.
+- If your Python functions need binary builds, see [Building Binary Python Dependencies For AMD64 And ARM64 Lambda Layers](https://awstip.com/building-binary-python-dependencies-for-amd64-and-arm64-lambda-layers-efc6f17e4bf6) - simply create a dummy folder under `layers/src` and build directly into the matching `layers/build` subfolder.
+- For a more thorough explanation of the build script, see [Fun Challenge: A Script To Handle Lambda Layer Building For Python And Node.js](https://therightstuff.medium.com/fun-challenge-a-script-to-handle-lambda-layer-building-for-python-and-node-js-b02ae27d4db2).
 
 WARNING: A lambda function can use a maximum of 5 layers and be a maximum of 250MB unzipped.
 
-##### Custom Lambda Layer Modules
+##### Custom Lambda Layer Modules (Node.js)
 
 To include a custom module in a layer, simply add it to a subfolder under the appropriate layer's `src` folder and it will be copied into the layer's build directory. Once the layer has been linked to a lambda function, it can then be accessed by including it from `/opt/nodejs/<module>`.
 

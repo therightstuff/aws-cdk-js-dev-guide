@@ -6,7 +6,7 @@ import { SecurityGroup, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { LayerVersion } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 import { DynamoDbComponents } from './dynamodb';
-import { LayerFunction } from './layer-function';
+import { LayerFunctions } from './layer-functions';
 import { RdsDatabase } from './rds-database';
 import { ScheduledFunction } from './scheduled-function';
 import { SimpleFunction } from './simple-function';
@@ -74,7 +74,7 @@ export class AwsStack extends Stack {
             || resources.includes("sqs-components");
 
         if (isLayerRequired) {
-            new LayerFunction(this, id, props, customOptions);
+            new LayerFunctions(this, id, props, customOptions);
         }
 
         const isDynamoDbRequired = resources.includes("dynamodb-components")

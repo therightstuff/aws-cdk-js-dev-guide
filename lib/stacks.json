@@ -17,5 +17,16 @@
             "static-website // disabled due to cost, requires valid /owned/ domainName",
             "vpc // disabled due to cost"
         ]
+    },
+    "rds-us": {
+        "description": "a stack with only the rds in us-east-1",
+        "region": "us-east-1",
+        "account": "{{AWS_ACCOUNT_NO}}",
+        "corsOrigin": "*",
+        "domainName": "example.com",
+        "subdomainNames": [ "www" ],
+        "resources": [
+            "rds"
+        ]
     }
 }

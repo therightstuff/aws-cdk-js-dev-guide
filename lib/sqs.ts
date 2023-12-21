@@ -1,6 +1,6 @@
 import { StackProps, aws_logs as logs } from 'aws-cdk-lib';
 import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Architecture, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { AwsStack } from './aws-cdk-js-dev-guide-stack';
@@ -9,8 +9,9 @@ export class SQSComponents {
     constructor(stack: AwsStack, id: string, props?: StackProps, customOptions?: any) {
         const sqsQueue = new Queue(stack, 'sqs-queue');
 
-        const queuePublishFunction = new Function(stack, 'queue-function-publish', {
-            runtime: Runtime.NODEJS_16_X,
+        const queuePublishFunction = new Function(stack, 'sqs-function-publish', {
+            runtime: Runtime.NODEJS_20_X,
+            architecture: Architecture.ARM_64,
             handler: 'index.publish',
             code: Code.fromAsset('./handlers/sqs'),
             environment: {
@@ -24,8 +25,9 @@ export class SQSComponents {
 
         sqsQueue.grantSendMessages(queuePublishFunction);
 
-        const queueSubscribeFunction = new Function(stack, 'queue-function-subscribe', {
-            runtime: Runtime.NODEJS_16_X,
+        const queueSubscribeFunction = new Function(stack, 'sqs-function-subscribe', {
+            runtime: Runtime.NODEJS_20_X,
+            architecture: Architecture.ARM_64,
             handler: 'index.subscribe',
             code: Code.fromAsset('./handlers/sqs'),
             environment: {

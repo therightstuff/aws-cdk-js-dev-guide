@@ -138,6 +138,18 @@ Lambda functions MUST return responses in the following format:
 }
 ```
 
+##### Lambda Architecture
+
+While the default architecture for Lambda functions is x86, it's generally recommended to deploy to ARM architecture where possible.
+
+##### Node.js Lambda Runtime Support
+
+> "When these patches are no longer available, Lambda ends support for the runtime"
+
+[AWS drops support for runtimes as soon as security patches stop being published](https://aws.amazon.com/blogs/compute/managing-aws-lambda-runtime-upgrades/).
+
+At the time of writing, the Node.js 16 runtime is already being phased out, and it's recommended to migrate directly to Node.js 20. Migrating the Lambda functions themselves is pretty straightforward - just rename the `.js` files to `.mjs` and update the function code accordingly. The trickiest part will most likely be migrating from the `aws-sdk` libraries to `@aws-sdk`.
+
 #### Lambda Layers
 
 Layers are composite packages that multiple lambda functions can reference.

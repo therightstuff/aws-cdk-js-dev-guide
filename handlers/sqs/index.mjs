@@ -1,8 +1,11 @@
-const aws = require('aws-sdk');
-const dynamodb = new aws.DynamoDB.DocumentClient();
-const sqs = new aws.SQS();
-const utils = require('/opt/nodejs/sample-layer/utils');
-const uuid = require('uuid').v4;
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import { v4 as uuid } from 'uuid';
+import { createResponse } from '/opt/nodejs/sample-layer/utils.mjs';
+
+const dynamodb = DynamoDBDocument.from(new DynamoDB({}));
+const sqs = new SQSClient({});
 
 const QUEUE_URL = process.env.QUEUE_URL;
 const TABLE_NAME = process.env.TABLE_NAME;
@@ -18,13 +21,13 @@ let corsHeaders = {
     'Access-Control-Allow-Credentials': true,
 };
 
-exports.publish = async (event) => {
-    const promise = new Promise((resolve, reject) => {
+export const publish = async (event) => {
+    return new Promise(async (resolve) => {
         let payload = null;
         try {
             payload = JSON.parse(event.body);
         } catch (err) {
-            return resolve(utils.createResponse({
+            return resolve(createResponse({
                 "statusCode": 400,
                 "headers": corsHeaders,
                 "body": {
@@ -36,21 +39,21 @@ exports.publish = async (event) => {
 
         // create the new message object
         let newId = uuid();
-        const params = {
+        const command = new SendMessageCommand({
             QueueUrl: QUEUE_URL,
-            // MessageBody must be a string
             MessageBody: JSON.stringify({
-                "id": newId,
+                "objectId": newId,
+                "dataOwner": "sqs-publisher",
                 "payload": payload,
                 "expiration": getExpirationTime()
             })
-        };
+          });
 
         // push the message object to the queue
         console.log(`publishing object ${newId}`);
-        sqs.sendMessage(params).promise()
-        .then(() => {
-            resolve(utils.createResponse({
+        try {
+            await sqs.send(command);
+            resolve(createResponse({
                 "statusCode": 200,
                 "headers": corsHeaders,
                 "body": {
@@ -58,10 +61,9 @@ exports.publish = async (event) => {
                     "id": newId
                 }
             }));
-        })
-        .catch((err) => {
+        } catch (err) {
             console.error(err);
-            resolve(utils.createResponse({
+            resolve(createResponse({
                 "statusCode": 500,
                 "headers": corsHeaders,
                 "body": {
@@ -70,15 +72,14 @@ exports.publish = async (event) => {
                     "error": err
                 }
             }));
-        });
+        };
     });
-    return promise;
 }
 
-exports.subscribe = async (event) => {
+export const subscribe = async (event) => {
     for (let record of event.Records) {
         const obj = JSON.parse(record.body);
-        console.log(`processing object ${obj.id}`);
+        console.log(`processing object ${obj.objectId}`);
 
         try {
             // put must be called synchronously or it
@@ -86,8 +87,8 @@ exports.subscribe = async (event) => {
             await dynamodb.put({
                 TableName: TABLE_NAME,
                 Item: obj
-            }).promise();
-            console.log(`item ${obj.id} stored`);
+            });
+            console.log(`item ${obj.objectId} stored`);
         } catch (err) {
             console.error(err);
         }

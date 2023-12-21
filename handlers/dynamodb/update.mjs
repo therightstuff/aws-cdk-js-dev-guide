@@ -1,6 +1,8 @@
-const aws = require('aws-sdk');
-const dynamodb = new aws.DynamoDB.DocumentClient();
-const utils = require('/opt/nodejs/sample-layer/utils');
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import { createResponse } from '/opt/nodejs/sample-layer/utils.mjs';
+
+const dynamodb = DynamoDBDocument.from(new DynamoDB({}));
 
 const TABLE_NAME = process.env.TABLE_NAME;
 const DDB_GSI_NAME = process.env.DDB_GSI_NAME;
@@ -15,13 +17,13 @@ let corsHeaders = {
     'Access-Control-Allow-Credentials': true,
 };
 
-exports.handler = async (event) => {
-    const promise = new Promise((resolve, reject) => {
+export const handler = async (event) => {
+    return new Promise(async (resolve) => {
         let payload = null;
         try {
             payload = JSON.parse(event.body);
         } catch (err) {
-            return resolve(utils.createResponse({
+            return resolve(createResponse({
                 "statusCode": 400,
                 "headers": corsHeaders,
                 "body": {
@@ -40,41 +42,41 @@ exports.handler = async (event) => {
         // update using both the partition key and the sort key, there's no
         // need for any querying beforehand and no need for read permissions
         // on the table either.
-        console.log(`querying table index`);
-        dynamodb.query({
-            TableName: TABLE_NAME,
-            IndexName: DDB_GSI_NAME,
-            KeyConditionExpression: 'objectId = :obj_id',
-            ExpressionAttributeValues: { ':obj_id': event.pathParameters.objectId }
-        }).promise()
-        .then(result => {
+        try {
+            console.log(`querying table index`);
+            const result = await dynamodb.query({
+                TableName: TABLE_NAME,
+                IndexName: DDB_GSI_NAME,
+                KeyConditionExpression: 'objectId = :obj_id',
+                ExpressionAttributeValues: { ':obj_id': event.pathParameters.objectId }
+            });
+
             if (result.Items.length > 0) {
                 let item = result.Items[0];
 
-                dynamodb.update({
-                    TableName: TABLE_NAME,
-                    Key: {
-                        "dataOwner": item.dataOwner,
-                        "objectId": item.objectId
-                    },
-                    UpdateExpression: "set payload = :p, expiration = :x",
-                    ExpressionAttributeValues: {
-                        ":p": payload,
-                        ":x": getExpirationTime()
-                    }
-                }).promise()
-                .then(() => {
-                    resolve(utils.createResponse({
+                try {
+                    await dynamodb.update({
+                        TableName: TABLE_NAME,
+                        Key: {
+                            "dataOwner": item.dataOwner,
+                            "objectId": item.objectId
+                        },
+                        UpdateExpression: "set payload = :p, expiration = :x",
+                        ExpressionAttributeValues: {
+                            ":p": payload,
+                            ":x": getExpirationTime()
+                        }
+                    });
+                    resolve(createResponse({
                         "statusCode": 200,
                         "headers": corsHeaders,
                         "body": {
                             "success": true
                         }
                     }));
-                })
-                .catch((err) => {
+                } catch(err) {
                     console.error(err);
-                    resolve(utils.createResponse({
+                    resolve(createResponse({
                         "statusCode": 500,
                         "headers": corsHeaders,
                         "body": {
@@ -83,9 +85,9 @@ exports.handler = async (event) => {
                             "error": err
                         }
                     }));
-                });
+                }
             } else {
-                resolve(utils.createResponse({
+                resolve(createResponse({
                     "statusCode": 500,
                     "headers": corsHeaders,
                     "body": {
@@ -94,10 +96,9 @@ exports.handler = async (event) => {
                     }
                 }));
             }
-        })
-        .catch((err) => {
+        } catch(err) {
             console.error(err);
-            resolve(utils.createResponse({
+            resolve(createResponse({
                 "statusCode": 500,
                 "headers": corsHeaders,
                 "body": {
@@ -106,7 +107,6 @@ exports.handler = async (event) => {
                     "error": err
                 }
             }));
-        });
+        }
     });
-    return promise;
 }

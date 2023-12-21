@@ -1,13 +1,14 @@
 import { Duration, StackProps, aws_logs as logs } from 'aws-cdk-lib';
 import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Architecture, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AwsStack } from './aws-cdk-js-dev-guide-stack';
 
 export class ScheduledFunction {
     constructor(stack: AwsStack, id: string, props?: StackProps, customOptions?: any) {
         const scheduledFunction = new Function(stack, 'scheduled-function', {
-            runtime: Runtime.NODEJS_16_X,
+            runtime: Runtime.NODEJS_20_X,
+            architecture: Architecture.ARM_64,
             handler: 'index.handler',
             code: Code.fromAsset('./handlers/scheduled'),
             logRetention: logs.RetentionDays.THREE_MONTHS,

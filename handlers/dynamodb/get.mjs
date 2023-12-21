@@ -1,6 +1,8 @@
-const aws = require('aws-sdk');
-const dynamodb = new aws.DynamoDB.DocumentClient();
-const utils = require('/opt/nodejs/sample-layer/utils');
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import { createResponse } from '/opt/nodejs/sample-layer/utils.mjs';
+
+const dynamodb = DynamoDBDocument.from(new DynamoDB({}));
 
 const TABLE_NAME = process.env.TABLE_NAME;
 const DDB_GSI_NAME = process.env.DDB_GSI_NAME;
@@ -10,8 +12,8 @@ let corsHeaders = {
     'Access-Control-Allow-Credentials': true,
 };
 
-exports.handler = async (event) => {
-    const promise = new Promise((resolve, reject) => {
+export const handler = async (event) => {
+    return new Promise(async (resolve) => {
         // to query the object, we require either the dataOwner and objectId (base table query),
         // or the objectId (index query).
         let getParams;
@@ -46,21 +48,18 @@ exports.handler = async (event) => {
             };
         }
 
-        let promise = getParams ?
-            dynamodb.get(getParams).promise() :
-            dynamodb.query(queryParams).promise();
-
-        promise
-        .then(result => {
-            resolve(utils.createResponse({
+        try {
+            const result = getParams ?
+                await dynamodb.get(getParams) :
+                await dynamodb.query(queryParams);
+            resolve(createResponse({
                 "statusCode": 200,
                 "headers": corsHeaders,
                 "body": result
             }));
-        })
-        .catch((err) => {
+        } catch (err) {
             console.error(err);
-            resolve(utils.createResponse({
+            resolve(createResponse({
                 "statusCode": 500,
                 "headers": corsHeaders,
                 "body": {
@@ -69,7 +68,6 @@ exports.handler = async (event) => {
                     "error": err
                 }
             }));
-        });
+        }
     });
-    return promise;
 }

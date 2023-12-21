@@ -1,6 +1,8 @@
-const aws = require('aws-sdk');
-const dynamodb = new aws.DynamoDB.DocumentClient();
-const utils = require('/opt/nodejs/sample-layer/utils');
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import { createResponse } from '/opt/nodejs/sample-layer/utils.mjs';
+
+const dynamodb = DynamoDBDocument.from(new DynamoDB({}));
 
 const TABLE_NAME = process.env.TABLE_NAME;
 
@@ -9,22 +11,21 @@ let corsHeaders = {
     'Access-Control-Allow-Credentials': true,
 };
 
-exports.handler = async (event) => {
-    const promise = new Promise((resolve, reject) => {
-        // scan the table for unexpired results
-        dynamodb.scan({
-            TableName: TABLE_NAME
-        }).promise()
-        .then((data) => {
-            resolve(utils.createResponse({
+export const handler = async (event) => {
+    return new Promise(async (resolve) => {
+        try {
+            // scan the table for unexpired results
+            const data = await dynamodb.scan({
+                TableName: TABLE_NAME
+            });
+            resolve(createResponse({
                 "statusCode": 200,
                 "headers": corsHeaders,
                 "body": data.Items
             }));
-        })
-        .catch((err) => {
+        } catch (err) {
             console.error(err);
-            resolve(utils.createResponse({
+            resolve(createResponse({
                 "statusCode": 500,
                 "headers": corsHeaders,
                 "body": {
@@ -33,7 +34,6 @@ exports.handler = async (event) => {
                     "error": err
                 }
             }));
-        });
+        }
     });
-    return promise;
 }

@@ -1,7 +1,9 @@
-const aws = require('aws-sdk');
-const dynamodb = new aws.DynamoDB.DocumentClient();
-const utils = require('/opt/nodejs/sample-layer/utils');
-const uuid = require('uuid').v4;
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import { v4 as uuid } from 'uuid';
+import { createResponse } from '/opt/nodejs/sample-layer/utils.mjs';
+
+const dynamodb = DynamoDBDocument.from(new DynamoDB({}));
 
 const TABLE_NAME = process.env.TABLE_NAME;
 const TTL_IN_SECONDS = 60;
@@ -15,13 +17,13 @@ let corsHeaders = {
     'Access-Control-Allow-Credentials': true,
 };
 
-exports.handler = async (event) => {
-    const promise = new Promise((resolve, reject) => {
+export const handler = async (event) => {
+    return new Promise(async (resolve) => {
         let payload = null;
         try {
             payload = JSON.parse(event.body);
         } catch (err) {
-            return resolve(utils.createResponse({
+            return resolve(createResponse({
                 "statusCode": 400,
                 "headers": corsHeaders,
                 "body": {
@@ -34,17 +36,17 @@ exports.handler = async (event) => {
         // add a new object to the table
         let newDataOwner = uuid();
         let newObjectId = uuid();
-        dynamodb.put({
-            TableName: TABLE_NAME,
-            Item: {
-                "dataOwner": newDataOwner,
-                "objectId": newObjectId,
-                "payload": payload,
-                "expiration": getExpirationTime()
-            }
-        }).promise()
-        .then(() => {
-            resolve(utils.createResponse({
+        try {
+            await dynamodb.put({
+                TableName: TABLE_NAME,
+                Item: {
+                    "dataOwner": newDataOwner,
+                    "objectId": newObjectId,
+                    "payload": payload,
+                    "expiration": getExpirationTime()
+                }
+            });
+            resolve(createResponse({
                 "statusCode": 200,
                 "headers": corsHeaders,
                 "body": {
@@ -53,10 +55,9 @@ exports.handler = async (event) => {
                     "objectId": newObjectId
                 }
             }));
-        })
-        .catch((err) => {
+        } catch (err) {
             console.error(err);
-            resolve(utils.createResponse({
+            resolve(createResponse({
                 "statusCode": 500,
                 "headers": corsHeaders,
                 "body": {
@@ -65,7 +66,6 @@ exports.handler = async (event) => {
                     "error": err
                 }
             }));
-        });
+        }
     });
-    return promise;
 }

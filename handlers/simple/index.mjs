@@ -1,4 +1,4 @@
-exports.handler = async (event) => {
+export const handler = async (event) => {
     const promise = new Promise((resolve, reject) => {
         // randomly return success or failure with the appropriate status code
         let success = Math.floor(Math.random() * 2) == 1;

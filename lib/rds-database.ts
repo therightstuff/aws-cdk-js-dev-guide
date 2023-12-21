@@ -1,7 +1,7 @@
 import { Duration, RemovalPolicy, StackProps, aws_logs as logs } from 'aws-cdk-lib';
 import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { InstanceClass, InstanceSize, InstanceType, Peer, Port, SubnetType } from 'aws-cdk-lib/aws-ec2';
-import { Code, Function, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Architecture, Code, Function, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Credentials, DatabaseInstance, DatabaseInstanceEngine, PostgresEngineVersion } from 'aws-cdk-lib/aws-rds';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { AwsStack } from './aws-cdk-js-dev-guide-stack';
@@ -69,14 +69,15 @@ export class RdsDatabase {
         const postgresLayer = new LayerVersion(stack, `postgres-layer`, {
             // Code.fromAsset must reference a valid build folder
             code: Code.fromAsset(`./layers/build/postgres-layer`),
-            compatibleRuntimes: [Runtime.NODEJS_16_X],
+            compatibleRuntimes: [Runtime.NODEJS_20_X],
             license: 'MIT',
             description: 'A layer for postgres functions',
         });
 
         // Lambda function
         const postgresFunction = new Function(stack, `postgres-function`, {
-            runtime: Runtime.NODEJS_16_X,
+            runtime: Runtime.NODEJS_20_X,
+            architecture: Architecture.ARM_64,
             handler: 'index.handler',
             vpc: stack.vpc,
             vpcSubnets: {

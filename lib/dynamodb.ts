@@ -1,7 +1,7 @@
 import { StackProps, aws_logs as logs } from 'aws-cdk-lib';
 import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { AttributeType, BillingMode, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Architecture, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AwsStack } from './aws-cdk-js-dev-guide-stack';
 
 export class DynamoDbComponents {
@@ -32,7 +32,8 @@ export class DynamoDbComponents {
         });
 
         const dynamodbGetFunction = new Function(stack, 'dynamodb-function-get', {
-            runtime: Runtime.NODEJS_16_X,
+            runtime: Runtime.NODEJS_20_X,
+            architecture: Architecture.ARM_64,
             handler: 'get.handler',
             code: Code.fromAsset('./handlers/dynamodb'),
             environment: {
@@ -47,7 +48,8 @@ export class DynamoDbComponents {
         dynamodbTable.grantReadData(dynamodbGetFunction);
 
         const dynamodbScanFunction = new Function(stack, 'dynamodb-function-scan', {
-            runtime: Runtime.NODEJS_16_X,
+            runtime: Runtime.NODEJS_20_X,
+            architecture: Architecture.ARM_64,
             handler: 'scan.handler',
             code: Code.fromAsset('./handlers/dynamodb'),
             environment: {
@@ -64,7 +66,8 @@ export class DynamoDbComponents {
         stack.dynamodbScanFunctionIntegration = dynamodbScanFunctionIntegration;
 
         const dynamodbCreateFunction = new Function(stack, 'dynamodb-function-create', {
-            runtime: Runtime.NODEJS_16_X,
+            runtime: Runtime.NODEJS_20_X,
+            architecture: Architecture.ARM_64,
             handler: 'create.handler',
             code: Code.fromAsset('./handlers/dynamodb'),
             environment: {
@@ -78,7 +81,8 @@ export class DynamoDbComponents {
         dynamodbTable.grantWriteData(dynamodbCreateFunction);
 
         const dynamodbUpdateFunction = new Function(stack, 'dynamodb-function-update', {
-            runtime: Runtime.NODEJS_16_X,
+            runtime: Runtime.NODEJS_20_X,
+            architecture: Architecture.ARM_64,
             handler: 'update.handler',
             code: Code.fromAsset('./handlers/dynamodb'),
             environment: {

@@ -1,14 +1,14 @@
-import { Duration, StackProps } from 'aws-cdk-lib';
+import { Duration, StackProps, aws_logs as logs } from 'aws-cdk-lib';
 import { AccessLogFormat, LambdaIntegration, LogGroupLogDestination, RestApi } from 'aws-cdk-lib/aws-apigateway';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Architecture, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { AwsStack } from './aws-cdk-js-dev-guide-stack';
-import { aws_logs as logs } from 'aws-cdk-lib';
 
 export class SimpleFunction {
     constructor(stack: AwsStack, id: string, props?: StackProps, customOptions?: any) {
         const simpleFunction = new Function(stack, 'simple-function', {
-            runtime: Runtime.NODEJS_16_X,
+            runtime: Runtime.NODEJS_20_X,
+            architecture: Architecture.ARM_64,
             handler: 'index.handler',
             code: Code.fromAsset('./handlers/simple'),
             environment: {

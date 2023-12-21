@@ -1,10 +1,9 @@
-const aws = require('aws-sdk');
-const uuid = require('uuid').v4;
-const utils = require('/opt/nodejs/sample-layer/utils');
+import { v4 as uuid } from 'uuid';
+import { createResponse } from '/opt/nodejs/sample-layer/utils.mjs';
 
-exports.handler = async (event) => {
-    const promise = new Promise((resolve, reject) => {
-        resolve(utils.createResponse({
+export const handler = async (event) => {
+    return new Promise((resolve) => {
+        resolve(createResponse({
             "statusCode": 200,
             "headers": {
                 'Access-Control-Allow-Origin': process.env.CORS_ORIGIN,
@@ -15,5 +14,4 @@ exports.handler = async (event) => {
             }
         }));
     });
-    return promise;
 }

@@ -1,7 +1,8 @@
-const fs = require('fs');
-const { join } = require('path');
+import pg from 'pg';
 
-const { Client } = require('pg');
+import fs from 'fs';
+import { join } from 'path';
+import { URL } from 'url';
 
 const POSTGRES_HOST = process.env.POSTGRES_HOST;
 const POSTGRES_PORT = Number(process.env.POSTGRES_PORT);
@@ -16,14 +17,15 @@ const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD;
 // insecure connections to RDS instances are not allowed.
 // See https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html#UsingWithRDS.SSL.CertificatesAllRegions
 // for more information
+const __dirname = new URL('.', import.meta.url).pathname;
 const CA_BUNDLE = fs.readFileSync(join(__dirname, 'global-bundle.pem')).toString();
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
     let success = true;
     let message = '';
     try {
         console.log(`Connecting to postgres database ${POSTGRES_DATABASE} on ${POSTGRES_HOST}...`);
-        const client = new Client({
+        const client = new pg.Client({
             user: POSTGRES_USERNAME,
             host: POSTGRES_HOST,
             database: POSTGRES_DATABASE,

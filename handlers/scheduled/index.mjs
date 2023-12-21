@@ -1,4 +1,4 @@
-exports.handler = async (event) => {
+export const handler = async (event) => {
     console.log("scheduled lambda function called.")
 
     // warmup calls do not have event.pathParameters defined
@@ -7,7 +7,9 @@ exports.handler = async (event) => {
         return;
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
+        const message = "This is the response to an unscheduled HTTP request";
+        console.warn(message);
         resolve({
             "isBase64Encoded": false,
             "statusCode": 200,
@@ -17,7 +19,7 @@ exports.handler = async (event) => {
             },
             "body": JSON.stringify({
                 "success": true,
-                "message": "This is a the response to an unscheduled HTTP request"
+                "message": message
             })
         });
     });

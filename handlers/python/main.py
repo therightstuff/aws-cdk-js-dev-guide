@@ -14,5 +14,4 @@ def handler(event, context):
             "success": True,
             "name": fake.name(),
             "address": fake.address(),
-            "password": fake.password()
-        })}
+            "password": fake.password() })}

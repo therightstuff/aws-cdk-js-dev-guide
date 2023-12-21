@@ -1,4 +1,4 @@
-import { Duration, StackProps, aws_logs as logs } from 'aws-cdk-lib';
+import { StackProps, aws_logs as logs } from 'aws-cdk-lib';
 import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Architecture, Code, Function, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AwsStack } from './aws-cdk-js-dev-guide-stack';
@@ -33,7 +33,6 @@ export class LayerFunctions {
             code: Code.fromAsset('./handlers/python'),
             layers: [layer],
             logRetention: logs.RetentionDays.THREE_MONTHS,
-            timeout: Duration.seconds(30),
         });
 
         // layer api

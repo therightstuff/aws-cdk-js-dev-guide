@@ -27,7 +27,7 @@
     "aws-cdk-lib": "^2.115.0",
     "aws-sdk": "^2.1524.0",
     "constructs": "^10.3.0",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.3.2",
     "eslint": "^8.56.0",
     "fs-extra": "^11.2.0",
     "simple-recursive-checksum": "^0.0.13",

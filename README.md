@@ -93,7 +93,7 @@ The example `bin/aws-cdk-js-dev-guide.ts` demonstrates tag configuration for an 
 
 #### Cloudwatch Logging and Metric Filters
 
-API Gateway access logging can be configured, but it appears that lambda logging cannot be redirected to a custom log group so the name of a lambda's log group will be automatically generated.
+API Gateway access logging must be configured manually. A Lambda function's log group will be automatically generated if not explicitly provided. For both, see the [`simple` lambda sample](#lambda-functions) for reference.
 
 Otherwise, Cloudwatch log event filtering and querying is quite robust, see [the documentation](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html).
 
@@ -119,15 +119,9 @@ const dynamodbApi = new RestApi(this, 'dynamodb-api', {
 
 #### Lambda Functions
 
-Lambda functions are defined in the `handlers` directory, and include the following samples:
+Lambda functions are defined in the `handlers` directory, and include a variety of samples.
 
-- `simple`: a stateless function
-- `layer`: a function that uses packages in a lambda layer
-- `dynamodb`: a function with handlers for storing and retrieving data
-  - NOTE: `timeToLiveAttribute` has been used in the example to set a TTL on
-    test data. Remove this attribute for persistent data.
-
-Lambda functions MUST return responses in the following format:
+Lambda functions MUST return responses in the following format, even if an error has occurred:
 
 ```javascript
 {

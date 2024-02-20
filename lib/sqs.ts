@@ -20,7 +20,10 @@ export class SQSComponents {
                 TABLE_NAME: stack.dynamodbTable.tableName
             },
             layers: [stack.layer],
-            logRetention: logs.RetentionDays.THREE_MONTHS,
+            logGroup: new logs.LogGroup(stack, `sqs-function-publish-logs`, {
+                logGroupName: `${id}-sqs-function-publish`,
+                retention: logs.RetentionDays.THREE_MONTHS,
+            }),
         });
 
         sqsQueue.grantSendMessages(queuePublishFunction);
@@ -35,7 +38,10 @@ export class SQSComponents {
                 TABLE_NAME: stack.dynamodbTable.tableName
             },
             layers: [stack.layer],
-            logRetention: logs.RetentionDays.THREE_MONTHS,
+            logGroup: new logs.LogGroup(stack, `sqs-function-subscribe-logs`, {
+                logGroupName: `${id}-sqs-function-subscribe`,
+                retention: logs.RetentionDays.THREE_MONTHS,
+            }),
         });
 
         // set up a queue event listener

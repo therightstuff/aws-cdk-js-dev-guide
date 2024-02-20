@@ -99,7 +99,10 @@ export class RdsDatabase {
                 POSTGRES_PASSWORD: masterUserSecret.secretValueFromJson('password').unsafeUnwrap(),
             },
             layers: [postgresLayer],
-            logRetention: logs.RetentionDays.THREE_DAYS,
+            logGroup: new logs.LogGroup(stack, `postgres-function-logs`, {
+                logGroupName: `${id}-postgres-function`,
+                retention: logs.RetentionDays.THREE_MONTHS,
+            }),
             timeout: Duration.seconds(10),
         });
 

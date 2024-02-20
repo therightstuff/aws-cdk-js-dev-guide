@@ -22,7 +22,10 @@ export class LayerFunctions {
             handler: 'index.handler',
             code: Code.fromAsset('./handlers/layer'),
             layers: [layer],
-            logRetention: logs.RetentionDays.THREE_MONTHS,
+            logGroup: new logs.LogGroup(stack, `layer-function-node-logs`, {
+                logGroupName: `${id}-layer-function-node`,
+                retention: logs.RetentionDays.THREE_MONTHS,
+            }),
         });
 
         // layer test function: python
@@ -32,7 +35,10 @@ export class LayerFunctions {
             handler: 'main.handler',
             code: Code.fromAsset('./handlers/python'),
             layers: [layer],
-            logRetention: logs.RetentionDays.THREE_MONTHS,
+            logGroup: new logs.LogGroup(stack, `layer-function-python-logs`, {
+                logGroupName: `${id}-layer-function-python`,
+                retention: logs.RetentionDays.THREE_MONTHS,
+            }),
         });
 
         // layer api

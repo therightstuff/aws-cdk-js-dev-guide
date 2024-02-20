@@ -42,7 +42,10 @@ export class DynamoDbComponents {
                 DDB_GSI_NAME
             },
             layers: [stack.layer],
-            logRetention: logs.RetentionDays.THREE_MONTHS,
+            logGroup: new logs.LogGroup(stack, `dynamodb-function-get-logs`, {
+                logGroupName: `${id}-dynamodb-function-get`,
+                retention: logs.RetentionDays.THREE_MONTHS,
+            }),
         });
 
         dynamodbTable.grantReadData(dynamodbGetFunction);
@@ -57,7 +60,10 @@ export class DynamoDbComponents {
                 TABLE_NAME: dynamodbTable.tableName
             },
             layers: [stack.layer],
-            logRetention: logs.RetentionDays.THREE_MONTHS,
+            logGroup: new logs.LogGroup(stack, `dynamodb-function-scan-logs`, {
+                logGroupName: `${id}-dynamodb-function-scan`,
+                retention: logs.RetentionDays.THREE_MONTHS,
+            }),
         });
 
         dynamodbTable.grantReadData(dynamodbScanFunction);
@@ -75,7 +81,10 @@ export class DynamoDbComponents {
                 TABLE_NAME: dynamodbTable.tableName
             },
             layers: [stack.layer],
-            logRetention: logs.RetentionDays.THREE_MONTHS,
+            logGroup: new logs.LogGroup(stack, `dynamodb-function-create-logs`, {
+                logGroupName: `${id}-dynamodb-function-create`,
+                retention: logs.RetentionDays.THREE_MONTHS,
+            }),
         });
 
         dynamodbTable.grantWriteData(dynamodbCreateFunction);
@@ -91,7 +100,10 @@ export class DynamoDbComponents {
                 DDB_GSI_NAME
             },
             layers: [stack.layer],
-            logRetention: logs.RetentionDays.THREE_MONTHS,
+            logGroup: new logs.LogGroup(stack, `dynamodb-function-update-logs`, {
+                logGroupName: `${id}-dynamodb-function-update`,
+                retention: logs.RetentionDays.THREE_MONTHS,
+            }),
         });
 
         // the update itself doesn't require read permissions, but we may need to query

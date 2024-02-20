@@ -11,7 +11,10 @@ export class ScheduledFunction {
             architecture: Architecture.ARM_64,
             handler: 'index.handler',
             code: Code.fromAsset('./handlers/scheduled'),
-            logRetention: logs.RetentionDays.THREE_MONTHS,
+            logGroup: new logs.LogGroup(stack, `scheduled-function-logs`, {
+                logGroupName: `${id}-scheduled-function`,
+                retention: logs.RetentionDays.THREE_MONTHS,
+            }),
             timeout: Duration.seconds(2),
         });
 

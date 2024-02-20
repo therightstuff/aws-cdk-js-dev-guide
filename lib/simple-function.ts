@@ -17,7 +17,7 @@ export class SimpleFunction {
                 WORLD: "World"
             },
             logGroup: new logs.LogGroup(stack, `simple-function-logs`, {
-                logGroupName: `${id}-simple-function-logs`,
+                logGroupName: `${id}-simple-function`,
                 retention: logs.RetentionDays.THREE_MONTHS,
             }),
             timeout: Duration.seconds(2),

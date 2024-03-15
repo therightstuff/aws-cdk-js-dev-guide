@@ -28,7 +28,7 @@
     "aws-sdk": "^2.1561.0",
     "constructs": "^10.3.0",
     "dotenv": "^16.4.5",
-    "eslint": "^8.56.0",
+    "eslint": "^8.57.0",
     "fs-extra": "^11.2.0",
     "simple-recursive-checksum": "^0.0.13",
     "source-map-support": "^0.5.21",

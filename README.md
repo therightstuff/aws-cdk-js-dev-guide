@@ -123,12 +123,12 @@ Lambda functions are defined in the `handlers` directory, and include a variety 
 
 Lambda         | Handler | Resource Definition |
 -------------- | ------- | ------------------- |
-`simple`       | [handler](handlers/simple/index.mjs) | [resource definitions](lib/simple-function.ts)
-`layer`        | [node handler](handlers/layer/index.mjs), [python handler](handlers/python/main.py) | [resource definitions](lib/layer-functions.ts)
-`dynamodb`     | [handlers](handlers/dynamodb/) | [resource definitions](lib/dynamodb.ts)
-`postgres rds` | [handler](handlers/postgres/index.mjs) | [resource definitions](lib/rds-database.ts)
-`scheduled`    | [handler](handlers/scheduled/index.mjs) | [resource definitions](lib/scheduled-function.ts)
-`sqs`          | [handlers](handlers/sqs/) | [resource definitions](lib/sqs.ts)
+`simple`       | [handler](handlers/simple/index.mjs) | [resource definitions](lib/simple-function.ts) |
+`layer`        | [node handler](handlers/layer/index.mjs), [python handler](handlers/python/main.py) | [resource definitions](lib/layer-functions.ts) |
+`dynamodb`     | [handlers](handlers/dynamodb/) | [resource definitions](lib/dynamodb.ts) |
+`postgres rds` | [handler](handlers/postgres/index.mjs) | [resource definitions](lib/rds-database.ts) |
+`scheduled`    | [handler](handlers/scheduled/index.mjs) | [resource definitions](lib/scheduled-function.ts) |
+`sqs`          | [handlers](handlers/sqs/) | [resource definitions](lib/sqs.ts) |
 
 Lambda functions MUST return responses in the following format, even if an error has occurred:
 

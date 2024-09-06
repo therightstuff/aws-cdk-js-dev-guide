@@ -10,7 +10,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "pg": "^8.11.5",
+    "nodejs": "file:",
+    "pg": "^8.12.0",
     "pg-hstore": "^2.3.4"
   }
 }

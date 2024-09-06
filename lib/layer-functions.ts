@@ -1,4 +1,4 @@
-import { StackProps, aws_logs as logs } from 'aws-cdk-lib';
+import { RemovalPolicy, StackProps, aws_logs as logs } from 'aws-cdk-lib';
 import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Architecture, Code, Function, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AwsStack } from './aws-cdk-js-dev-guide-stack';
@@ -24,6 +24,7 @@ export class LayerFunctions {
             layers: [layer],
             logGroup: new logs.LogGroup(stack, `layer-function-node-logs`, {
                 logGroupName: `${id}-layer-function-node`,
+                removalPolicy: RemovalPolicy.DESTROY,
                 retention: logs.RetentionDays.THREE_MONTHS,
             }),
         });
@@ -37,6 +38,7 @@ export class LayerFunctions {
             layers: [layer],
             logGroup: new logs.LogGroup(stack, `layer-function-python-logs`, {
                 logGroupName: `${id}-layer-function-python`,
+                removalPolicy: RemovalPolicy.DESTROY,
                 retention: logs.RetentionDays.THREE_MONTHS,
             }),
         });

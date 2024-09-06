@@ -1,4 +1,4 @@
-import { StackProps, aws_logs as logs } from 'aws-cdk-lib';
+import { RemovalPolicy, StackProps, aws_logs as logs } from 'aws-cdk-lib';
 import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { AttributeType, BillingMode, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Architecture, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
@@ -44,6 +44,7 @@ export class DynamoDbComponents {
             layers: [stack.layer],
             logGroup: new logs.LogGroup(stack, `dynamodb-function-get-logs`, {
                 logGroupName: `${id}-dynamodb-function-get`,
+                removalPolicy: RemovalPolicy.DESTROY,
                 retention: logs.RetentionDays.THREE_MONTHS,
             }),
         });
@@ -62,6 +63,7 @@ export class DynamoDbComponents {
             layers: [stack.layer],
             logGroup: new logs.LogGroup(stack, `dynamodb-function-scan-logs`, {
                 logGroupName: `${id}-dynamodb-function-scan`,
+                removalPolicy: RemovalPolicy.DESTROY,
                 retention: logs.RetentionDays.THREE_MONTHS,
             }),
         });
@@ -83,6 +85,7 @@ export class DynamoDbComponents {
             layers: [stack.layer],
             logGroup: new logs.LogGroup(stack, `dynamodb-function-create-logs`, {
                 logGroupName: `${id}-dynamodb-function-create`,
+                removalPolicy: RemovalPolicy.DESTROY,
                 retention: logs.RetentionDays.THREE_MONTHS,
             }),
         });
@@ -102,6 +105,7 @@ export class DynamoDbComponents {
             layers: [stack.layer],
             logGroup: new logs.LogGroup(stack, `dynamodb-function-update-logs`, {
                 logGroupName: `${id}-dynamodb-function-update`,
+                removalPolicy: RemovalPolicy.DESTROY,
                 retention: logs.RetentionDays.THREE_MONTHS,
             }),
         });

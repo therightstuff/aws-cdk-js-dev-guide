@@ -1,4 +1,4 @@
-import { StackProps, aws_logs as logs } from 'aws-cdk-lib';
+import { RemovalPolicy, StackProps, aws_logs as logs } from 'aws-cdk-lib';
 import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Architecture, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
@@ -22,6 +22,7 @@ export class SQSComponents {
             layers: [stack.layer],
             logGroup: new logs.LogGroup(stack, `sqs-function-publish-logs`, {
                 logGroupName: `${id}-sqs-function-publish`,
+                removalPolicy: RemovalPolicy.DESTROY,
                 retention: logs.RetentionDays.THREE_MONTHS,
             }),
         });
@@ -40,6 +41,7 @@ export class SQSComponents {
             layers: [stack.layer],
             logGroup: new logs.LogGroup(stack, `sqs-function-subscribe-logs`, {
                 logGroupName: `${id}-sqs-function-subscribe`,
+                removalPolicy: RemovalPolicy.DESTROY,
                 retention: logs.RetentionDays.THREE_MONTHS,
             }),
         });

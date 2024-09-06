@@ -32,7 +32,7 @@ export class RdsDatabase {
         };
 
         postgresConfig.engine = DatabaseInstanceEngine.postgres({
-            version: PostgresEngineVersion.VER_15_3
+            version: PostgresEngineVersion.VER_16_4
         });
 
         // CAUTION: make sure you're familiar with the pricing of the instance type you choose!
@@ -101,6 +101,7 @@ export class RdsDatabase {
             layers: [postgresLayer],
             logGroup: new logs.LogGroup(stack, `postgres-function-logs`, {
                 logGroupName: `${id}-postgres-function`,
+                removalPolicy: RemovalPolicy.DESTROY,
                 retention: logs.RetentionDays.THREE_MONTHS,
             }),
             timeout: Duration.seconds(10),

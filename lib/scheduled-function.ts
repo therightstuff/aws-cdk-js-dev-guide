@@ -1,4 +1,4 @@
-import { Duration, StackProps, aws_logs as logs } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, StackProps, aws_logs as logs } from 'aws-cdk-lib';
 import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { Architecture, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
@@ -13,6 +13,7 @@ export class ScheduledFunction {
             code: Code.fromAsset('./handlers/scheduled'),
             logGroup: new logs.LogGroup(stack, `scheduled-function-logs`, {
                 logGroupName: `${id}-scheduled-function`,
+                removalPolicy: RemovalPolicy.DESTROY,
                 retention: logs.RetentionDays.THREE_MONTHS,
             }),
             timeout: Duration.seconds(2),

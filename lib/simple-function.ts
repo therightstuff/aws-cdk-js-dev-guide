@@ -1,4 +1,4 @@
-import { Duration, StackProps, aws_logs as logs } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, StackProps, aws_logs as logs } from 'aws-cdk-lib';
 import { AccessLogFormat, LambdaIntegration, LogGroupLogDestination, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Architecture, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
@@ -18,6 +18,7 @@ export class SimpleFunction {
             },
             logGroup: new logs.LogGroup(stack, `simple-function-logs`, {
                 logGroupName: `${id}-simple-function`,
+                removalPolicy: RemovalPolicy.DESTROY,
                 retention: logs.RetentionDays.THREE_MONTHS,
             }),
             timeout: Duration.seconds(2),

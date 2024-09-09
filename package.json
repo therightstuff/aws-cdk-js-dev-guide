@@ -26,7 +26,7 @@
     "@types/node": "22.5.4",
     "aws-cdk-js-dev-guide": "file:",
     "aws-cdk-lib": "^2.156.0",
-    "aws-sdk": "^2.1690.0",
+    "aws-sdk": "^2.1691.0",
     "constructs": "^10.3.0",
     "dotenv": "^16.4.5",
     "eslint": "^9.9.1",

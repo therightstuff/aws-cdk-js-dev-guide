@@ -5,7 +5,8 @@
         "account": "{{AWS_ACCOUNT_NO}}",
         "corsOrigin": "*",
         "domainName": "example.com",
-        "subdomainNames": [ "www" ],
+        "subdomainNames": ["www"],
+        "isNakedDomainTarget": true,
         "resources": [
             "backup-plan // disabled due to cost",
             "dynamodb-components",
@@ -24,9 +25,7 @@
         "account": "{{AWS_ACCOUNT_NO}}",
         "corsOrigin": "*",
         "domainName": "example.com",
-        "subdomainNames": [ "www" ],
-        "resources": [
-            "rds"
-        ]
+        "subdomainNames": ["www"],
+        "resources": ["rds"]
     }
 }

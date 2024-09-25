@@ -1,18 +1,18 @@
 import { RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
 import { RestApi } from "aws-cdk-lib/aws-apigateway";
 import {
+    AccessLevel,
     AllowedMethods,
     CachePolicy,
     Distribution,
     Function,
     FunctionCode,
     FunctionEventType,
-    OriginAccessIdentity,
     OriginProtocolPolicy,
     OriginRequestPolicy,
     ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
-import { HttpOrigin, S3Origin } from "aws-cdk-lib/aws-cloudfront-origins";
+import { HttpOrigin, S3BucketOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 import { ARecord, CnameRecord, RecordTarget } from "aws-cdk-lib/aws-route53";
 import * as targets from "aws-cdk-lib/aws-route53-targets";
 import { Bucket, BucketEncryption } from "aws-cdk-lib/aws-s3";
@@ -29,6 +29,7 @@ export class StaticWebsite {
         customOptions?: any
     ) {
         const domainName = customOptions.domainName;
+        const isNakedDomainTarget = customOptions.isNakedDomainTarget;
         const subdomainNames = customOptions.subdomainNames.map(
             (subdomain: string) => `${subdomain}.${domainName}`
         );
@@ -43,15 +44,8 @@ export class StaticWebsite {
             autoDeleteObjects: true, // NOT recommended for production code
         });
 
-        const originAccessIdentity = new OriginAccessIdentity(
-            stack,
-            "site-OAI",
-            {
-                comment: "website OAI",
-            }
-        );
-        const s3Origin = new S3Origin(siteBucket, {
-            originAccessIdentity: originAccessIdentity,
+        const s3Origin = S3BucketOrigin.withOriginAccessControl(siteBucket, {
+            originAccessLevels: [AccessLevel.READ],
         });
 
         // the API Gateway API for the static website
@@ -107,7 +101,9 @@ export class StaticWebsite {
         );
 
         const distribution = new Distribution(stack, "SiteDistribution", {
-            domainNames: [...subdomainNames],
+            domainNames: isNakedDomainTarget
+                ? [domainName, ...subdomainNames]
+                : [...subdomainNames],
             certificate: customOptions.certificate,
             // the default behavior is how we set up the static website
             defaultBehavior: {
@@ -168,13 +164,15 @@ export class StaticWebsite {
 
         // Route53 alias record for the naked domain's CloudFront distribution
         // Leave this out if you're only deploying to a subdomain / subdomains
-        new ARecord(stack, "SiteAliasRecord", {
-            recordName: domainName,
-            target: RecordTarget.fromAlias(
-                new targets.CloudFrontTarget(distribution)
-            ),
-            zone,
-        });
+        if (isNakedDomainTarget) {
+            new ARecord(stack, "SiteAliasRecord", {
+                recordName: domainName,
+                target: RecordTarget.fromAlias(
+                    new targets.CloudFrontTarget(distribution)
+                ),
+                zone,
+            });
+        }
 
         // Route53 alias record for a subdomain's CloudFront distribution
         for (const subdomainName of subdomainNames) {

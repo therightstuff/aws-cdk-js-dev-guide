@@ -1,18 +1,22 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
-import { Cors, LambdaIntegration } from 'aws-cdk-lib/aws-apigateway';
-import { BackupPlan, BackupPlanRule, BackupResource } from 'aws-cdk-lib/aws-backup';
-import { Table } from 'aws-cdk-lib/aws-dynamodb';
-import { SecurityGroup, Vpc } from 'aws-cdk-lib/aws-ec2';
-import { LayerVersion } from 'aws-cdk-lib/aws-lambda';
-import { Construct } from 'constructs';
-import { DynamoDbComponents } from './dynamodb';
-import { LayerFunctions } from './layer-functions';
-import { RdsDatabase } from './rds-database';
-import { ScheduledFunction } from './scheduled-function';
-import { SimpleFunction } from './simple-function';
-import { SQSComponents } from './sqs';
-import { StaticWebsite } from './static-website';
-import { VpcResources } from './vpc-resources';
+import { Stack, StackProps } from "aws-cdk-lib";
+import { Cors, LambdaIntegration } from "aws-cdk-lib/aws-apigateway";
+import {
+    BackupPlan,
+    BackupPlanRule,
+    BackupResource,
+} from "aws-cdk-lib/aws-backup";
+import { Table } from "aws-cdk-lib/aws-dynamodb";
+import { SecurityGroup, Vpc } from "aws-cdk-lib/aws-ec2";
+import { LayerVersion } from "aws-cdk-lib/aws-lambda";
+import { Construct } from "constructs";
+import { DynamoDbComponents } from "./dynamodb";
+import { LayerFunctions } from "./layer-functions";
+import { RdsDatabase } from "./rds-database";
+import { ScheduledFunction } from "./scheduled-function";
+import { SimpleFunction } from "./simple-function";
+import { SQSComponents } from "./sqs";
+import { StaticWebsite } from "./static-website";
+import { VpcResources } from "./vpc-resources";
 
 export class AwsStack extends Stack {
     // properties shared between the different sample components
@@ -23,23 +27,31 @@ export class AwsStack extends Stack {
     securityGroup: SecurityGroup;
     vpc: Vpc;
 
-    constructor(scope: Construct, id: string, props?: StackProps, customOptions?: any) {
+    constructor(
+        scope: Construct,
+        id: string,
+        props?: StackProps,
+        customOptions?: any
+    ) {
         super(scope, id, props);
 
         customOptions = customOptions || {};
         const resources = customOptions.resources || [];
 
         // configure backup plan, alternatively use defaults like BackupPlan.dailyWeeklyMonthly5YearRetention
-        if (resources.includes('backup-plan')) {
-            const backupPlan = new BackupPlan(this, `${id}-daily-weekly-monthly`);
+        if (resources.includes("backup-plan")) {
+            const backupPlan = new BackupPlan(
+                this,
+                `${id}-daily-weekly-monthly`
+            );
             backupPlan.addRule(BackupPlanRule.daily());
             backupPlan.addRule(BackupPlanRule.weekly());
             backupPlan.addRule(BackupPlanRule.monthly1Year());
-            backupPlan.addSelection('Selection', {
+            backupPlan.addSelection("Selection", {
                 resources: [
                     //BackupResource.fromDynamoDbTable(myTable), // A specific DynamoDB table
-                    BackupResource.fromTag('stack-name', id), // All resources that are tagged stack-name=<id> in the region/account
-                ]
+                    BackupResource.fromTag("stack-name", id), // All resources that are tagged stack-name=<id> in the region/account
+                ],
             });
         }
 
@@ -51,17 +63,16 @@ export class AwsStack extends Stack {
             // this will be used to make the stack's CORS origin available to lambdas
             // as an environment variable
             corsEnvironment: {
-                CORS_ORIGIN: corsOrigin
+                CORS_ORIGIN: corsOrigin,
             },
             // reusable RESTful API CORS options object
             corsOptions: {
-                allowOrigins: [ corsOrigin ], // array containing an origin, or Cors.ALL_ORIGINS
+                allowOrigins: [corsOrigin], // array containing an origin, or Cors.ALL_ORIGINS
                 allowMethods: Cors.ALL_METHODS, // array of methods eg. [ 'OPTIONS', 'GET', 'POST', 'PUT', 'DELETE' ]
-            }
+            },
         };
 
-        if (resources.includes("vpc")
-            || resources.includes("rds")) {
+        if (resources.includes("vpc") || resources.includes("rds")) {
             new VpcResources(this, id, props, customOptions);
         }
 
@@ -69,16 +80,18 @@ export class AwsStack extends Stack {
             new SimpleFunction(this, id, props, customOptions);
         }
 
-        const isLayerRequired = resources.includes("lambda-layer")
-            || resources.includes("dynamodb-components")
-            || resources.includes("sqs-components");
+        const isLayerRequired =
+            resources.includes("lambda-layer") ||
+            resources.includes("dynamodb-components") ||
+            resources.includes("sqs-components");
 
         if (isLayerRequired) {
             new LayerFunctions(this, id, props, customOptions);
         }
 
-        const isDynamoDbRequired = resources.includes("dynamodb-components")
-            || resources.includes("sqs-components");
+        const isDynamoDbRequired =
+            resources.includes("dynamodb-components") ||
+            resources.includes("sqs-components");
 
         if (isDynamoDbRequired) {
             new DynamoDbComponents(this, id, props, customOptions);
@@ -104,7 +117,6 @@ export class AwsStack extends Stack {
         if (resources.includes("scheduled-function")) {
             new ScheduledFunction(this, id, props, customOptions);
         }
-
 
         // CAUTION: Hosted Zones are not free, nor is their usage. Each domain you
         //          configure will cost you a minimum of $0.50 per month (assuming

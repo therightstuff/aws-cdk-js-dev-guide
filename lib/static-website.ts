@@ -1,19 +1,37 @@
-import { RemovalPolicy, StackProps } from 'aws-cdk-lib';
-import { RestApi } from 'aws-cdk-lib/aws-apigateway';
-import { AllowedMethods, CachePolicy, Distribution, OriginAccessIdentity, OriginProtocolPolicy, OriginRequestPolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
-import { HttpOrigin, S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { ARecord, CnameRecord, RecordTarget } from 'aws-cdk-lib/aws-route53';
-import * as targets from 'aws-cdk-lib/aws-route53-targets';
-import { Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
-import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
-import { AwsStack } from './aws-cdk-js-dev-guide-stack';
+import { RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
+import { RestApi } from "aws-cdk-lib/aws-apigateway";
+import {
+    AllowedMethods,
+    CachePolicy,
+    Distribution,
+    Function,
+    FunctionCode,
+    FunctionEventType,
+    OriginAccessIdentity,
+    OriginProtocolPolicy,
+    OriginRequestPolicy,
+    ViewerProtocolPolicy,
+} from "aws-cdk-lib/aws-cloudfront";
+import { HttpOrigin, S3Origin } from "aws-cdk-lib/aws-cloudfront-origins";
+import { ARecord, CnameRecord, RecordTarget } from "aws-cdk-lib/aws-route53";
+import * as targets from "aws-cdk-lib/aws-route53-targets";
+import { Bucket, BucketEncryption } from "aws-cdk-lib/aws-s3";
+import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
+import { AwsStack } from "./aws-cdk-js-dev-guide-stack";
 
 // see https://medium.com/aws-tip/pssst-wanna-set-up-a-reverse-proxy-api-on-an-aws-hosted-single-page-application-938937e50a11
 // for a detailed explanation of how a static website with a reverse proxy API works
 export class StaticWebsite {
-    constructor(stack: AwsStack, id: string, props?: StackProps, customOptions?: any) {
+    constructor(
+        stack: AwsStack,
+        id: string,
+        props?: StackProps,
+        customOptions?: any
+    ) {
         const domainName = customOptions.domainName;
-        const subdomainName = `www.${domainName}`;
+        const subdomainNames = customOptions.subdomainNames.map(
+            (subdomain: string) => `${subdomain}.${domainName}`
+        );
         const zone = customOptions.zone;
 
         // the site bucket for the static website
@@ -25,19 +43,25 @@ export class StaticWebsite {
             autoDeleteObjects: true, // NOT recommended for production code
         });
 
-        const originAccessIdentity = new OriginAccessIdentity(stack, 'site-OAI', {
-            comment: 'website OAI'
+        const originAccessIdentity = new OriginAccessIdentity(
+            stack,
+            "site-OAI",
+            {
+                comment: "website OAI",
+            }
+        );
+        const s3Origin = new S3Origin(siteBucket, {
+            originAccessIdentity: originAccessIdentity,
         });
-        const s3Origin = new S3Origin(siteBucket, {originAccessIdentity: originAccessIdentity})
 
         // the API Gateway API for the static website
-        const siteApi = new RestApi(stack, 'site-api');
+        const siteApi = new RestApi(stack, "site-api");
 
         // the site API must have an /api resource which is where the site's API calls will be mapped to
         // WARNING: actual functionality of the site's API is an exercise left to the reader
-        const siteApiRoot = siteApi.root.addResource('api');
+        const siteApiRoot = siteApi.root.addResource("api");
         // a dummy method, as CDK will not synthesize without any methods
-        const siteApiGet = siteApiRoot.addMethod('GET');
+        const siteApiGet = siteApiRoot.addMethod("GET");
 
         // NOTE: it amazes me that manually reconstructing this url is required.
         const apiOriginName = `${siteApi.restApiId}.execute-api.${stack.region}.amazonaws.com`;
@@ -76,42 +100,74 @@ export class StaticWebsite {
             },
         ];
 
-
-        const distribution = new Distribution(
+        const redirectFunction = generateRedirectFunction(
             stack,
-            "SiteDistribution",
-            {
-                domainNames: [domainName, subdomainName],
-                certificate: customOptions.certificate,
-                // the default behavior is how we set up the static website
-                defaultBehavior: {
+            "subdirectory",
+            "subdirectory"
+        );
+
+        const distribution = new Distribution(stack, "SiteDistribution", {
+            domainNames: [...subdomainNames],
+            certificate: customOptions.certificate,
+            // the default behavior is how we set up the static website
+            defaultBehavior: {
+                origin: s3Origin,
+                allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+                cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+                viewerProtocolPolicy: ViewerProtocolPolicy.ALLOW_ALL,
+            },
+            // additional behaviors is how we set up a reverse proxy to the API,
+            // as well as any redirects required for subdirectories. this won't be
+            // necessary for an SPA, as an SPA should handle its own routing.
+            additionalBehaviors: {
+                "api/*": {
+                    origin: new HttpOrigin(apiOriginName, {
+                        originId: apiOriginName,
+                        protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY,
+                        httpPort: 80,
+                        httpsPort: 443,
+                        originPath: apiOriginPath,
+                    }),
+                    viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
+                    cachePolicy: CachePolicy.CACHING_DISABLED,
+                    allowedMethods: AllowedMethods.ALLOW_ALL,
+                    originRequestPolicy:
+                        OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+                },
+                // unfortunately, the supported wildcards are non-standard
+                // and quite limited, see Path pattern under
+                // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-values-specify.html
+                subdirectory: {
                     origin: s3Origin,
                     allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
                     cachePolicy: CachePolicy.CACHING_OPTIMIZED,
                     viewerProtocolPolicy: ViewerProtocolPolicy.ALLOW_ALL,
+                    functionAssociations: [
+                        {
+                            function: redirectFunction,
+                            eventType: FunctionEventType.VIEWER_REQUEST,
+                        },
+                    ],
                 },
-                // the addition behaviors is how we set up a reverse proxy to the API
-                additionalBehaviors: {
-                    "api/*": {
-                        origin: new HttpOrigin(apiOriginName, {
-                            originId: apiOriginName,
-                            protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY,
-                            httpPort: 80,
-                            httpsPort: 443,
-                            originPath: apiOriginPath,
-                        }),
-                        viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
-                        cachePolicy: CachePolicy.CACHING_DISABLED,
-                        allowedMethods: AllowedMethods.ALLOW_ALL,
-                        originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-                    },
+                "subdirectory/": {
+                    origin: s3Origin,
+                    allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+                    cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+                    viewerProtocolPolicy: ViewerProtocolPolicy.ALLOW_ALL,
+                    functionAssociations: [
+                        {
+                            function: redirectFunction,
+                            eventType: FunctionEventType.VIEWER_REQUEST,
+                        },
+                    ],
                 },
-                defaultRootObject: "index.html",
-                errorResponses: regularErrorResponses,
-            }
-        );
+            },
+            defaultRootObject: "index.html",
+            errorResponses: regularErrorResponses,
+        });
 
         // Route53 alias record for the naked domain's CloudFront distribution
+        // Leave this out if you're only deploying to a subdomain / subdomains
         new ARecord(stack, "SiteAliasRecord", {
             recordName: domainName,
             target: RecordTarget.fromAlias(
@@ -121,11 +177,13 @@ export class StaticWebsite {
         });
 
         // Route53 alias record for a subdomain's CloudFront distribution
-        new CnameRecord(stack, "SiteCnameRecord", {
-            recordName: subdomainName,
-            domainName: distribution.distributionDomainName,
-            zone,
-        });
+        for (const subdomainName of subdomainNames) {
+            new CnameRecord(stack, "SiteCnameRecord", {
+                recordName: subdomainName,
+                domainName: distribution.distributionDomainName,
+                zone,
+            });
+        }
 
         // Deploy the static website to the site bucket
         // The distribution must be specified in order to perform cache
@@ -133,7 +191,39 @@ export class StaticWebsite {
         new BucketDeployment(stack, "static-website-deployment", {
             sources: [Source.asset("./static-website")],
             destinationBucket: siteBucket,
-            distribution: distribution
+            distribution: distribution,
         });
     }
+}
+
+function generateRedirectFunction(
+    stack: Stack,
+    name: string,
+    subdirectory: string
+) {
+    // configure a redirect function that will redirect to a subdirectory
+    // or rewrite the subdirectory as its index.html page
+    return new Function(stack, `${name}-redirect-function`, {
+        code: FunctionCode.fromInline(`
+            function handler(event) {
+                var request = event.request;
+                var uri = request.uri;
+
+                if (uri === '/${subdirectory}') {
+                    return {
+                        statusCode: 302,
+                        statusDescription: 'Found',
+                        headers: {
+                            "location": { value: '/${subdirectory}/' }
+                        }
+                    };
+                }
+
+                var finalSlashNeeded = uri.lastIndexOf('/') != uri.length - 1;
+                request.uri = uri + (finalSlashNeeded ? '/' : '') + 'index.html';
+
+                return request;
+            }
+        `),
+    });
 }

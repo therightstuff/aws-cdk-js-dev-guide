@@ -1,8 +1,11 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
-import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
-import { HostedZone, IHostedZone } from 'aws-cdk-lib/aws-route53';
-import { Construct } from 'constructs';
-import { WrappedError } from './utils';
+import { Stack, StackProps } from "aws-cdk-lib";
+import {
+    Certificate,
+    CertificateValidation,
+} from "aws-cdk-lib/aws-certificatemanager";
+import { HostedZone, IHostedZone } from "aws-cdk-lib/aws-route53";
+import { Construct } from "constructs";
+import { WrappedError } from "./utils";
 
 export class CertificateStack extends Stack {
     // NOTE: See README.md for instructions on how to configure a Hosted Zone.
@@ -13,7 +16,12 @@ export class CertificateStack extends Stack {
     zone: IHostedZone;
     certificate: Certificate;
 
-    constructor(scope: Construct, id: string, props: StackProps, customOptions: any = {}) {
+    constructor(
+        scope: Construct,
+        id: string,
+        props: StackProps,
+        customOptions: any = {}
+    ) {
         super(scope, id, props);
         const stack = this;
         const domainName = customOptions.domainName;
@@ -26,19 +34,20 @@ export class CertificateStack extends Stack {
                 domainName,
             });
         } catch (err) {
-            throw new WrappedError(`Hosted zone not found for stack ${id} in region us-east-1.`, err);
+            throw new WrappedError(
+                `Hosted zone not found for stack ${id} in region us-east-1.`,
+                err
+            );
         }
 
         // TLS certificate, see https://serverfault.com/a/1047117 for domain/subdomain configuration
-        this.certificate = new Certificate(
-            stack,
-            "site-certificate",
-            {
-                domainName: domainName,
-                // this is only necessary if you want to use subdomains
-                subjectAlternativeNames: subdomainNames,
-                validation: CertificateValidation.fromDns(this.zone)
-            }
-        );
+        this.certificate = new Certificate(stack, "site-certificate", {
+            // if you're only deploying to a subdomain and another stack is responsible for the root domain,
+            // use the subdomain name here instead of the root domain name
+            domainName: domainName,
+            // this is only necessary if you're deploying to additional subdomains
+            subjectAlternativeNames: subdomainNames,
+            validation: CertificateValidation.fromDns(this.zone),
+        });
     }
 }

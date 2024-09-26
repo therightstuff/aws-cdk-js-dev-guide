@@ -8,6 +8,7 @@ import {
     Function,
     FunctionCode,
     FunctionEventType,
+    IOrigin,
     OriginProtocolPolicy,
     OriginRequestPolicy,
     ViewerProtocolPolicy,
@@ -133,30 +134,14 @@ export class StaticWebsite {
                 // unfortunately, the supported wildcards are non-standard
                 // and quite limited, see Path pattern under
                 // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-values-specify.html
-                subdirectory: {
-                    origin: s3Origin,
-                    allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-                    cachePolicy: CachePolicy.CACHING_OPTIMIZED,
-                    viewerProtocolPolicy: ViewerProtocolPolicy.ALLOW_ALL,
-                    functionAssociations: [
-                        {
-                            function: redirectFunction,
-                            eventType: FunctionEventType.VIEWER_REQUEST,
-                        },
-                    ],
-                },
-                "subdirectory/": {
-                    origin: s3Origin,
-                    allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-                    cachePolicy: CachePolicy.CACHING_OPTIMIZED,
-                    viewerProtocolPolicy: ViewerProtocolPolicy.ALLOW_ALL,
-                    functionAssociations: [
-                        {
-                            function: redirectFunction,
-                            eventType: FunctionEventType.VIEWER_REQUEST,
-                        },
-                    ],
-                },
+                subdirectory: generateRedirectBehavior(
+                    s3Origin,
+                    redirectFunction
+                ),
+                "subdirectory/": generateRedirectBehavior(
+                    s3Origin,
+                    redirectFunction
+                ),
             },
             defaultRootObject: "index.html",
             errorResponses: regularErrorResponses,
@@ -192,6 +177,24 @@ export class StaticWebsite {
             distribution: distribution,
         });
     }
+}
+
+function generateRedirectBehavior(
+    s3Origin: IOrigin,
+    redirectFunction: Function
+) {
+    return {
+        origin: s3Origin,
+        allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+        viewerProtocolPolicy: ViewerProtocolPolicy.ALLOW_ALL,
+        functionAssociations: [
+            {
+                function: redirectFunction,
+                eventType: FunctionEventType.VIEWER_REQUEST,
+            },
+        ],
+    };
 }
 
 function generateRedirectFunction(

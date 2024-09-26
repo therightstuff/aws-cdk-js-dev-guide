@@ -25,7 +25,6 @@ export class CertificateStack extends Stack {
         super(scope, id, props);
         const stack = this;
         const domainName = customOptions.domainName;
-        const isNakedDomainTarget = customOptions.isNakedDomainTarget;
         const subdomainNames = customOptions.subdomainNames.map(
             (subdomain: string) => `${subdomain}.${domainName}`
         );
@@ -43,12 +42,10 @@ export class CertificateStack extends Stack {
 
         // TLS certificate, see https://serverfault.com/a/1047117 for domain/subdomain configuration
         this.certificate = new Certificate(stack, "site-certificate", {
-            // if you're only deploying to a subdomain and another stack is responsible for the root domain,
-            // use the first subdomain name as the certificate's domain name
-            domainName: isNakedDomainTarget ? domainName : subdomainNames[0],
-            subjectAlternativeNames: isNakedDomainTarget
-                ? subdomainNames
-                : subdomainNames.slice(1),
+            // regardless of what's being deployed, it's best to ensure that the domain and
+            // all subdomains are included in the certificate
+            domainName: domainName,
+            subjectAlternativeNames: subdomainNames,
             validation: CertificateValidation.fromDns(this.zone),
         });
     }

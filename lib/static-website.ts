@@ -210,20 +210,48 @@ function generateRedirectFunction(
                 var request = event.request;
                 var uri = request.uri;
 
+                // if the request is for the subdirectory, redirect to the subdirectory/
+                // this is to ensure that any relative links in the application will work
+                // correctly
                 if (uri === '/${subdirectory}') {
+                    var relocation = '/${subdirectory}/';
+                    // if there's a querystring, we need to preserve it
+                    if (request.querystring) {
+                        relocation += '?' + getURLSearchParamsString(request.querystring);
+                    }
                     return {
                         statusCode: 302,
                         statusDescription: 'Found',
                         headers: {
-                            "location": { value: '/${subdirectory}/' }
+                            "location": { value: relocation }
                         }
                     };
                 }
 
-                var finalSlashNeeded = uri.lastIndexOf('/') != uri.length - 1;
-                request.uri = uri + (finalSlashNeeded ? '/' : '') + 'index.html';
+                request.uri = uri + 'index.html';
 
                 return request;
+            }
+
+            // Helper function to format query string parameters, see
+            // https://github.com/aws-samples/amazon-cloudfront-functions/issues/11
+            function getURLSearchParamsString(querystring) {
+                var str = [];
+
+                for (var param in querystring) {
+                    var query = querystring[param];
+                    var multiValue = query.multiValue;
+
+                    if (multiValue) {
+                        str.push(multiValue.map((item) => param + '=' + item.value).join('&'));
+                    } else if (query.value === '') {
+                        str.push(param);
+                    } else {
+                        str.push(param + '=' + query.value);
+                    }
+                }
+
+                return str.join('&');
             }
         `),
     });

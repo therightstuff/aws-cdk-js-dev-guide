@@ -13,6 +13,6 @@
   "author": "therightstuff",
   "license": "MIT",
   "dependencies": {
-    "uuid": "^11.0.3"
+    "uuid": "^11.0.5"
   }
 }

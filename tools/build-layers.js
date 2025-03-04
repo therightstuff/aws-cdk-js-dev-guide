@@ -85,7 +85,44 @@ async function processLayer(layer) {
 
             console.log("installing npm dependencies...");
             const npmCommand = packageLockExists ? "ci" : "install";
-            spawn.execSync(`npm ${npmCommand}`, { cwd: nodeJsContentsPath });
+            try {
+                spawn.execSync(`npm ${npmCommand}`, {
+                    cwd: nodeJsContentsPath,
+                    stdio: "inherit",
+                });
+            } catch (error) {
+                console.error(
+                    `Error installing npm dependencies: ${error.message}`
+                );
+                // if packageLockExists (ie. we used ci), ask if they want to retry with install instead
+                if (packageLockExists) {
+                    const readline = require("readline").createInterface({
+                        input: process.stdin,
+                        output: process.stdout,
+                    });
+
+                    const retry = await new Promise((resolve) => {
+                        readline.question(
+                            "Retry with install? (y/n) ",
+                            (answer) => {
+                                readline.close();
+                                resolve(answer);
+                            }
+                        );
+                    });
+
+                    if (retry.toLowerCase() === "y") {
+                        spawn.execSync(`npm install`, {
+                            cwd: nodeJsContentsPath,
+                            stdio: "inherit",
+                        });
+                    } else {
+                        throw error;
+                    }
+                } else {
+                    throw error;
+                }
+            }
         }
 
         if (isPythonLayer) {

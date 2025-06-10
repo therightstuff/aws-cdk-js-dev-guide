@@ -51,7 +51,7 @@ Copy the following as-is to your new project:
     |- `build-layers.js`
     |- `package-upgrade.js`
     |- `persistent-shell.js`
-|- `.eslintc`
+|- `.eslint.config.js`
 |- `.gitignore`
 |- `.npmignore`
 |- `tsconfig.json`

@@ -20,6 +20,7 @@ const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD;
 const __dirname = new URL('.', import.meta.url).pathname;
 const CA_BUNDLE = fs.readFileSync(join(__dirname, 'global-bundle.pem')).toString();
 
+// eslint-disable-next-line no-unused-vars
 export const handler = async (event) => {
     let success = true;
     let message = '';

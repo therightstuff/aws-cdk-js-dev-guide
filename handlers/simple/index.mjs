@@ -1,5 +1,5 @@
 export const handler = async (event) => {
-    const promise = new Promise((resolve, reject) => {
+    const promise = new Promise((resolve) => {
         // randomly return success or failure with the appropriate status code
         let success = Math.floor(Math.random() * 2) == 1;
         let statusCode = (success ? 200 : 500)

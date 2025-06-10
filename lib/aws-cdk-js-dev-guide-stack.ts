@@ -35,8 +35,8 @@ export class AwsStack extends Stack {
     ) {
         super(scope, id, props);
 
-        customOptions = customOptions || {};
-        const resources = customOptions.resources || [];
+        customOptions = customOptions ?? {};
+        const resources = customOptions.resources ?? [];
 
         // configure backup plan, alternatively use defaults like BackupPlan.dailyWeeklyMonthly5YearRetention
         if (resources.includes("backup-plan")) {
@@ -56,7 +56,7 @@ export class AwsStack extends Stack {
         }
 
         // set default CORS origin to ALL_ORIGINS
-        const corsOrigin = customOptions.corsOrigin || "*";
+        const corsOrigin = customOptions.corsOrigin ?? "*";
 
         this.cors = {
             corsOrigin,
@@ -81,8 +81,8 @@ export class AwsStack extends Stack {
         }
 
         const isLayerRequired =
-            resources.includes("lambda-layer") ||
-            resources.includes("dynamodb-components") ||
+            resources.includes("lambda-layer") ??
+            resources.includes("dynamodb-components") ??
             resources.includes("sqs-components");
 
         if (isLayerRequired) {
@@ -90,7 +90,7 @@ export class AwsStack extends Stack {
         }
 
         const isDynamoDbRequired =
-            resources.includes("dynamodb-components") ||
+            resources.includes("dynamodb-components") ??
             resources.includes("sqs-components");
 
         if (isDynamoDbRequired) {

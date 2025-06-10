@@ -11,29 +11,28 @@ let corsHeaders = {
     'Access-Control-Allow-Credentials': true,
 };
 
+// eslint-disable-next-line no-unused-vars
 export const handler = async (event) => {
-    return new Promise(async (resolve) => {
-        try {
-            // scan the table for unexpired results
-            const data = await dynamodb.scan({
-                TableName: TABLE_NAME
-            });
-            resolve(createResponse({
-                "statusCode": 200,
-                "headers": corsHeaders,
-                "body": data.Items
-            }));
-        } catch (err) {
-            console.error(err);
-            resolve(createResponse({
-                "statusCode": 500,
-                "headers": corsHeaders,
-                "body": {
-                    "success": false,
-                    "reason": "an unexpected error occurred",
-                    "error": err
-                }
-            }));
-        }
-    });
+    try {
+        // scan the table for unexpired results
+        const data = await dynamodb.scan({
+            TableName: TABLE_NAME
+        });
+        return createResponse({
+            "statusCode": 200,
+            "headers": corsHeaders,
+            "body": data.Items
+        });
+    } catch (err) {
+        console.error(err);
+        return createResponse({
+            "statusCode": 500,
+            "headers": corsHeaders,
+            "body": {
+                "success": false,
+                "reason": "an unexpected error occurred",
+                "error": err
+            }
+        });
+    }
 }

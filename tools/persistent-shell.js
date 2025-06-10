@@ -54,7 +54,7 @@ const getPersistentShell = (shell) => {
 		let result = null;
 		if (capture) {
 			const cmdResChunks = [];
-			result = new Promise((res, rej) => {
+			result = new Promise((res) => {
 				dataListeners.push((data) => {
 					cmdResChunks.push(data.toString());
 					if (cmdResChunks.length >= dataLength) {

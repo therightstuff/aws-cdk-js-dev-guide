@@ -22,58 +22,57 @@ let corsHeaders = {
 };
 
 export const publish = async (event) => {
-    return new Promise(async (resolve) => {
-        let payload = null;
-        try {
-            payload = JSON.parse(event.body);
-        } catch (err) {
-            return resolve(createResponse({
-                "statusCode": 400,
-                "headers": corsHeaders,
-                "body": {
-                    "success": false,
-                    "reason": "unable to parse request body, expected valid JSON format"
-                }
-            }));
-        }
+    let payload = null;
+    try {
+        payload = JSON.parse(event.body);
+    // eslint-disable-next-line no-unused-vars
+    } catch (err) {
+        return createResponse({
+            "statusCode": 400,
+            "headers": corsHeaders,
+            "body": {
+                "success": false,
+                "reason": "unable to parse request body, expected valid JSON format"
+            }
+        });
+    }
 
-        // create the new message object
-        let newId = uuid();
-        const command = new SendMessageCommand({
-            QueueUrl: QUEUE_URL,
-            MessageBody: JSON.stringify({
-                "objectId": newId,
-                "dataOwner": "sqs-publisher",
-                "payload": payload,
-                "expiration": getExpirationTime()
-            })
-          });
+    // create the new message object
+    let newId = uuid();
+    const command = new SendMessageCommand({
+        QueueUrl: QUEUE_URL,
+        MessageBody: JSON.stringify({
+            "objectId": newId,
+            "dataOwner": "sqs-publisher",
+            "payload": payload,
+            "expiration": getExpirationTime()
+        })
+      });
 
-        // push the message object to the queue
-        console.log(`publishing object ${newId}`);
-        try {
-            await sqs.send(command);
-            resolve(createResponse({
-                "statusCode": 200,
-                "headers": corsHeaders,
-                "body": {
-                    "success": true,
-                    "id": newId
-                }
-            }));
-        } catch (err) {
-            console.error(err);
-            resolve(createResponse({
-                "statusCode": 500,
-                "headers": corsHeaders,
-                "body": {
-                    "success": false,
-                    "reason": "an unexpected error occurred",
-                    "error": err
-                }
-            }));
-        };
-    });
+    // push the message object to the queue
+    console.log(`publishing object ${newId}`);
+    try {
+        await sqs.send(command);
+        return createResponse({
+            "statusCode": 200,
+            "headers": corsHeaders,
+            "body": {
+                "success": true,
+                "id": newId
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        return createResponse({
+            "statusCode": 500,
+            "headers": corsHeaders,
+            "body": {
+                "success": false,
+                "reason": "an unexpected error occurred",
+                "error": err
+            }
+        });
+    };
 }
 
 export const subscribe = async (event) => {

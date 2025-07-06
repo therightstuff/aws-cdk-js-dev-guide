@@ -10,7 +10,7 @@ export class SQSComponents {
         const sqsQueue = new Queue(stack, 'sqs-queue');
 
         const queuePublishFunction = new Function(stack, 'sqs-function-publish', {
-            runtime: Runtime.NODEJS_20_X,
+            runtime: Runtime.NODEJS_LATEST,
             architecture: Architecture.ARM_64,
             handler: 'index.publish',
             code: Code.fromAsset('./handlers/sqs'),
@@ -30,7 +30,7 @@ export class SQSComponents {
         sqsQueue.grantSendMessages(queuePublishFunction);
 
         const queueSubscribeFunction = new Function(stack, 'sqs-function-subscribe', {
-            runtime: Runtime.NODEJS_20_X,
+            runtime: Runtime.NODEJS_LATEST,
             architecture: Architecture.ARM_64,
             handler: 'index.subscribe',
             code: Code.fromAsset('./handlers/sqs'),

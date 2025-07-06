@@ -69,14 +69,14 @@ export class RdsDatabase {
         const postgresLayer = new LayerVersion(stack, `postgres-layer`, {
             // Code.fromAsset must reference a valid build folder
             code: Code.fromAsset(`./layers/build/postgres-layer`),
-            compatibleRuntimes: [Runtime.NODEJS_20_X],
+            compatibleRuntimes: [Runtime.NODEJS_LATEST],
             license: 'MIT',
             description: 'A layer for postgres functions',
         });
 
         // Lambda function
         const postgresFunction = new Function(stack, `postgres-function`, {
-            runtime: Runtime.NODEJS_20_X,
+            runtime: Runtime.NODEJS_LATEST,
             architecture: Architecture.ARM_64,
             handler: 'index.handler',
             vpc: stack.vpc,

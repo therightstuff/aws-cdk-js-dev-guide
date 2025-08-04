@@ -9,7 +9,7 @@ export class LayerFunctions {
             // Code.fromAsset must reference the build folder
             code: Code.fromAsset('./layers/build/sample-layer'),
             compatibleArchitectures: [Architecture.ARM_64],
-            compatibleRuntimes: [Runtime.NODEJS_LATEST, Runtime.PYTHON_3_10],
+            compatibleRuntimes: [Runtime.NODEJS_22_X, Runtime.PYTHON_3_10],
             license: 'MIT',
             description: 'A sample layer for the node, python and dynamodb test functions',
         });
@@ -17,7 +17,7 @@ export class LayerFunctions {
 
         // layer test function: node
         const layerFunctionNode = new Function(stack, 'layer-function-node', {
-            runtime: Runtime.NODEJS_LATEST,
+            runtime: Runtime.NODEJS_22_X,
             architecture: Architecture.ARM_64,
             handler: 'index.handler',
             code: Code.fromAsset('./handlers/layer'),

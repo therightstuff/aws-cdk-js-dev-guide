@@ -7,7 +7,7 @@ import { AwsStack } from './aws-cdk-js-dev-guide-stack';
 export class ScheduledFunction {
     constructor(stack: AwsStack, id: string, props?: StackProps, customOptions?: any) {
         const scheduledFunction = new Function(stack, 'scheduled-function', {
-            runtime: Runtime.NODEJS_LATEST,
+            runtime: Runtime.NODEJS_22_X,
             architecture: Architecture.ARM_64,
             handler: 'index.handler',
             code: Code.fromAsset('./handlers/scheduled'),

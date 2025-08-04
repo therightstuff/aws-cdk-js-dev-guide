@@ -7,7 +7,7 @@ import { AwsStack } from './aws-cdk-js-dev-guide-stack';
 export class SimpleFunction {
     constructor(stack: AwsStack, id: string, props?: StackProps, customOptions?: any) {
         const simpleFunction = new Function(stack, 'simple-function', {
-            runtime: Runtime.NODEJS_LATEST,
+            runtime: Runtime.NODEJS_22_X,
             architecture: Architecture.ARM_64,
             handler: 'index.handler',
             code: Code.fromAsset('./handlers/simple'),

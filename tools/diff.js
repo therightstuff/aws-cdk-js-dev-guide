@@ -6,6 +6,7 @@ const repoBaseUrl = 'https://raw.githubusercontent.com/therightstuff/aws-cdk-js-
 
 const filesToCheck = [
     'tools/build-layers.js',
+    'tools/diff.js',
     'tools/package-upgrade.js',
     'tools/persistent-shell.js',
     'tsconfig.json',
@@ -13,11 +14,7 @@ const filesToCheck = [
     '.prettierrc',
     'lib/certificate-stack.ts',
     'lib/utils.ts',
-    'bin/load-sensitive-json.ts',
-    'layers/src/sample-layer/package.json',
-    'layers/src/sample-layer/requirements.txt',
-    'layers/src/sample-layer/sample-layer/utils.mjs',
-    'handlers/simple/index.mjs'
+    'bin/load-sensitive-json.ts'
 ];
 
 function fetchFile(relativePath) {
@@ -41,6 +38,24 @@ function fetchFile(relativePath) {
 }
 
 async function main() {
+    const args = process.argv.slice(2);
+    if (args.includes('-h') || args.includes('--help')) {
+        console.log('Usage: node tools/diff.js [options]');
+        console.log('');
+        console.log('Options:');
+        console.log('  -h, --help       Show this help message');
+        console.log('  -q, --quiet      Only show summary (match/diff/missing), do not print diffs');
+        console.log('  --single         Output diffs to a single file (diffs.patch)');
+        console.log('  --multiple       Output diffs to multiple files (diff-<filename>.patch)');
+        console.log('');
+        console.log('By default, diffs are printed to stdout.');
+        process.exit(0);
+    }
+
+    const outputMode = args.includes('--single') ? 'single' : (args.includes('--multiple') ? 'multiple' : 'stdout');
+    const quiet = args.includes('-q') || args.includes('--quiet');
+    const allDiffs = [];
+
     console.log('Generating diff report...');
     console.log('-------------------------');
 
@@ -70,6 +85,34 @@ async function main() {
                 console.log(`[MATCH] ${file}`);
             } else {
                 console.log(`[DIFF] ${file} (Content differs)`);
+
+                const diffContent = [];
+                const localLines = normalizedLocal.split('\n');
+                const remoteLines = normalizedRemote.split('\n');
+                const maxLines = Math.max(localLines.length, remoteLines.length);
+                for (let i = 0; i < maxLines; i++) {
+                    const localLine = localLines[i] || '';
+                    const remoteLine = remoteLines[i] || '';
+                    if (localLine !== remoteLine) {
+                        diffContent.push(`- ${localLine}`);
+                        diffContent.push(`+ ${remoteLine}`);
+                    }
+                }
+
+                if (outputMode === 'stdout') {
+                    if (!quiet) {
+                        console.log(diffContent.join('\n'));
+                        console.log('');
+                    }
+                } else if (outputMode === 'multiple') {
+                    const diffFilePath = path.resolve(process.cwd(), `diff-${path.basename(file)}.patch`);
+                    fs.writeFileSync(diffFilePath, diffContent.join('\n'), 'utf8');
+                    console.log(`  Diff exported to: ${diffFilePath}`);
+                } else if (outputMode === 'single') {
+                    allDiffs.push(`--- ${file} ---`);
+                    allDiffs.push(...diffContent);
+                    allDiffs.push('');
+                }
             }
 
         } catch (e) {
@@ -77,8 +120,15 @@ async function main() {
         }
     }
 
+    if (outputMode === 'single' && allDiffs.length > 0) {
+        const diffFilePath = path.resolve(process.cwd(), 'diffs.patch');
+        fs.writeFileSync(diffFilePath, allDiffs.join('\n'), 'utf8');
+        console.log(`All diffs exported to: ${diffFilePath}`);
+    }
+
     console.log('-------------------------');
     console.log('Done.');
+    process.exit(0);
 }
 
 main().catch(console.error);

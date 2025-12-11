@@ -2,18 +2,21 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 const https = require('https');
+const readline = require('readline');
 
 const repoBaseUrl = 'https://raw.githubusercontent.com/therightstuff/aws-cdk-js-dev-guide/main/';
 
-const args = process.argv.slice(2);
-if (args.length < 1) {
-    console.error('Usage: node init.js <project-name> [use-cert-stack]');
-    process.exit(1);
-}
+function askQuestion(query) {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
 
-const projectName = args[0];
-const useCertStack = args[1] === 'true' || args[1] === 'yes';
-const projectDir = path.resolve(process.cwd(), projectName);
+    return new Promise(resolve => rl.question(query, ans => {
+        rl.close();
+        resolve(ans);
+    }));
+}
 
 function fetchFile(relativePath) {
     return new Promise((resolve, reject) => {
@@ -31,6 +34,16 @@ function fetchFile(relativePath) {
 }
 
 async function main() {
+    const projectName = await askQuestion('Enter project name: ');
+    if (!projectName) {
+        console.error('Project name is required.');
+        process.exit(1);
+    }
+
+    const certStackAnswer = await askQuestion('Use certificate stack? (y/n): ');
+    const useCertStack = certStackAnswer.toLowerCase().startsWith('y');
+    const projectDir = path.resolve(process.cwd(), projectName);
+
     console.log(`Initializing project ${projectName}...`);
 
     if (fs.existsSync(projectDir)) {

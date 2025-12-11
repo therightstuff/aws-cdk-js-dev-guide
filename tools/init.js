@@ -7,8 +7,19 @@ const readline = require('readline');
 const repoBaseUrl = 'https://raw.githubusercontent.com/therightstuff/aws-cdk-js-dev-guide/main/';
 
 function askQuestion(query) {
+    let input = process.stdin;
+    // If stdin is not a TTY (e.g. when piping curl | node), try to read from /dev/tty
+    if (!process.stdin.isTTY && process.platform !== 'win32') {
+        try {
+            const tty = fs.openSync('/dev/tty', 'r');
+            input = fs.createReadStream(null, { fd: tty });
+        } catch (err) {
+            // Fallback to stdin if /dev/tty cannot be opened
+        }
+    }
+
     const rl = readline.createInterface({
-        input: process.stdin,
+        input: input,
         output: process.stdout,
     });
 

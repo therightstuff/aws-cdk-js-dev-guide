@@ -109,6 +109,16 @@ async function main() {
         fs.chmodSync(`tools/${tool}`, 0o755);
     }
 
+    console.log('Copying README...');
+    try {
+        let readmeContent = await fetchFile('README.md');
+        // Replace the first heading with the project name
+        readmeContent = readmeContent.replace(/^#\s+.+$/m, `# ${projectName}`);
+        fs.writeFileSync('README.md', readmeContent);
+    } catch {
+        throw new Error('Could not fetch README.md, aborting.');
+    }
+
     console.log('Copying configurations...');
     const configs = [
         '.env.template',
@@ -122,7 +132,7 @@ async function main() {
             const content = await fetchFile(config);
             fs.writeFileSync(config, content);
         } catch {
-            console.warn(`Could not fetch ${config}, skipping.`);
+            throw new Error(`Could not fetch ${config}, aborting.`);
         }
     }
 

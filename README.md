@@ -1,6 +1,6 @@
 # AWS CDK Javascript Dev Guide
 
-This project is a template that's intended to serve as a guide for working with CDK in TypeScript / Javascript.
+[This project](https://github.com/therightstuff/aws-cdk-js-dev-guide) is a template that's intended to serve as a guide for working with CDK in TypeScript / Javascript.
 
 ## Initializing a new project
 
@@ -19,6 +19,17 @@ To compare your changes against the latest state of this repository, you can run
 ```bash
 ./tools/diff.js -h
 ```
+
+## Useful commands
+
+- `npm run package-upgrade` upgrade all packages (including layer packages) to their latest versions
+- `npm run build`           build layers and compile typescript to js
+- `npm run synth`           perform build steps then synthesize the CloudFormation template(s)
+                            NOTE FOR WINDOWS USERS: you might need to turn on `Developer Mode`
+                            in your settings to enable CDK to use symlinks
+- `cdk deploy [STACK_NAME]` deploy the stack (or a named stack if you have multiple stacks) to the configured AWS account/region
+- `cdk diff`                compare deployed stack with current state
+- `tools/diff.js`          compare your project files against the latest version of this repository
 
 ## History
 
@@ -76,15 +87,6 @@ Copy the following as-is to your new project:
 ```
 
 Additionally, you will need to copy the npm script definitions from `package.json`, the `bin/aws-cdk-js-dev-guide.ts` file (with the stack name modified to match your new project), and modify the signature of `lib/aws-cdk-js-dev-guide-stack.ts` to accept custom options.
-
-### Useful commands
-
-- `npm run build`   build layers and compile typescript to js
-- `npm run synth`   perform build steps then synthesize the CloudFormation template(s)
-                    NOTE FOR WINDOWS USERS: you might need to turn on `Developer Mode`
-                    in your settings to enable CDK to use symlinks
-- `cdk deploy`      deploy this stack to your default AWS account/region
-- `cdk diff`        compare deployed stack with current state
 
 ### CDK Runtime Context
 

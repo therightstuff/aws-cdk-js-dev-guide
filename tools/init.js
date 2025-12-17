@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
@@ -6,27 +8,47 @@ const readline = require('readline');
 
 const repoBaseUrl = 'https://raw.githubusercontent.com/therightstuff/aws-cdk-js-dev-guide/main/';
 
-function askQuestion(query) {
+let rl;
+
+function getRl() {
+    if (rl) return rl;
+
     let input = process.stdin;
     // If stdin is not a TTY (e.g. when piping curl | node), try to read from /dev/tty
     if (!process.stdin.isTTY && process.platform !== 'win32') {
         try {
             const tty = fs.openSync('/dev/tty', 'r');
             input = fs.createReadStream(null, { fd: tty });
+        // eslint-disable-next-line no-unused-vars
         } catch (err) {
             // Fallback to stdin if /dev/tty cannot be opened
         }
     }
 
-    const rl = readline.createInterface({
+    rl = readline.createInterface({
         input: input,
         output: process.stdout,
     });
+    return rl;
+}
 
-    return new Promise(resolve => rl.question(query, ans => {
-        rl.close();
+function askQuestion(query) {
+    return new Promise(resolve => getRl().question(query, ans => {
         resolve(ans);
+        closeRl();
     }));
+}
+
+function closeRl() {
+    if (rl) {
+        rl.close();
+        // If we created a custom stream from /dev/tty, we need to destroy it
+        // to release the file descriptor and stop reading.
+        if (rl.input !== process.stdin) {
+            rl.input.destroy();
+        }
+        rl = null;
+    }
 }
 
 function fetchFile(relativePath) {
@@ -51,8 +73,9 @@ async function main() {
         process.exit(1);
     }
 
-    const certStackAnswer = await askQuestion('Use certificate stack? (y/n): ');
-    const useCertStack = certStackAnswer.toLowerCase().startsWith('y');
+    const certStackAnswer = await askQuestion('Use certificate stack? (y/N): ');
+    const yesAnswers = ['y', 'yes'];
+    const useCertStack = yesAnswers.includes(certStackAnswer.toLowerCase());
     const projectDir = path.resolve(process.cwd(), projectName);
 
     console.log(`Initializing project ${projectName}...`);
@@ -66,7 +89,10 @@ async function main() {
     process.chdir(projectDir);
 
     console.log('Running cdk init...');
-    execSync('npx cdk init app --language typescript', { stdio: 'inherit' });
+    execSync('npx cdk init app --language typescript', { stdio: ['ignore', 'inherit', 'inherit'] });
+
+    console.log('Removing test folder...');
+    fs.rmSync('test', { recursive: true, force: true });
 
     console.log('Copying tools...');
     fs.mkdirSync('tools', { recursive: true });
@@ -77,13 +103,47 @@ async function main() {
     }
 
     console.log('Copying configurations...');
-    const configs = ['tsconfig.json', 'eslint.config.js', '.prettierrc'];
+    const configs = ['tsconfig.json', 'eslint.config.js', '.prettierrc', '.env.template'];
     for (const config of configs) {
         try {
             const content = await fetchFile(config);
             fs.writeFileSync(config, content);
         } catch {
             console.warn(`Could not fetch ${config}, skipping.`);
+        }
+    }
+
+    console.log('Updating package.json...');
+    const remotePackageJsonStr = await fetchFile('package.json');
+    const remotePackageJson = JSON.parse(remotePackageJsonStr);
+    const localPackageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+
+    // overwrite scripts
+    localPackageJson.scripts = remotePackageJson.scripts;
+
+    // overwrite dependencies
+    localPackageJson.dependencies = remotePackageJson.dependencies;
+
+    // overwrite devDependencies
+    localPackageJson.devDependencies = remotePackageJson.devDependencies;
+
+    fs.writeFileSync('package.json', JSON.stringify(localPackageJson, null, 2));
+
+    if (!useCertStack) {
+        console.log('Updating configurations (removing static-website)...');
+
+        if (fs.existsSync('tsconfig.json')) {
+            const tsConfig = JSON.parse(fs.readFileSync('tsconfig.json', 'utf8'));
+            if (tsConfig.exclude) {
+                tsConfig.exclude = tsConfig.exclude.filter(e => e !== 'static-website');
+                fs.writeFileSync('tsconfig.json', JSON.stringify(tsConfig, null, 2));
+            }
+        }
+
+        if (fs.existsSync('eslint.config.js')) {
+            let eslintConfig = fs.readFileSync('eslint.config.js', 'utf8');
+            eslintConfig = eslintConfig.replace(/'static-website\/\*\*',?\s*/g, '');
+            fs.writeFileSync('eslint.config.js', eslintConfig);
         }
     }
 
@@ -109,14 +169,62 @@ async function main() {
         // Modify constructor to accept options
         stackContent = stackContent.replace(
             /constructor\s*\(([^)]*)\)\s*{/,
-            'constructor($1, options: any) {'
+            'constructor($1, customOptions?: any) {'
+        );
+        // Inject customOptions initialization
+        stackContent = stackContent.replace(
+            /super\s*\(\s*scope,\s*id\s*(,[^)]*)?\);/,
+            'super(scope, id$1);\n    customOptions = customOptions ?? {};'
         );
         fs.writeFileSync(`lib/${stackFile}`, stackContent);
+    }
+
+    let stackClassName = 'AwsStack';
+    let stackImportPath = '../lib/aws-cdk-js-dev-guide-stack';
+    const binFile = fs.readdirSync('bin').find(f => f.endsWith('.ts') && !f.includes('load-sensitive-json'));
+
+    if (binFile) {
+        const originalBinContent = fs.readFileSync(`bin/${binFile}`, 'utf8');
+        const stackImportMatch = originalBinContent.match(/import\s+\{\s*(\w+)\s*\}\s+from\s+'(\.\.\/lib\/[^']+)';/);
+        if (stackImportMatch) {
+            stackClassName = stackImportMatch[1];
+            stackImportPath = stackImportMatch[2];
+        }
+    } else {
+        throw new Error('No valid bin file found.');
     }
 
     if (useCertStack) {
         const certStackContent = await fetchFile('lib/certificate-stack.ts');
         fs.writeFileSync('lib/certificate-stack.ts', certStackContent);
+
+        console.log('Setting up static website...');
+        fs.mkdirSync('static-website/js', { recursive: true });
+        fs.mkdirSync('static-website/subdirectory', { recursive: true });
+
+        const staticWebsiteLibFile = 'lib/static-website.ts';
+
+        const staticWebsiteFiles = [
+            staticWebsiteLibFile,
+            'static-website/error-403.html',
+            'static-website/error-404.html',
+            'static-website/index.html',
+            'static-website/js/sample.js',
+            'static-website/subdirectory/index.html'
+        ];
+
+        for (const file of staticWebsiteFiles) {
+            let content = await fetchFile(file);
+            if (file === staticWebsiteLibFile) {
+                 const libImportPath = stackImportPath.replace('../lib/', './');
+                 content = content.replace(
+                    /import\s+\{\s*AwsStack\s*\}\s+from\s+"[^"]+";/,
+                    `import { ${stackClassName} } from "${libImportPath}";`
+                );
+                content = content.replace(/AwsStack/g, stackClassName);
+            }
+            fs.writeFileSync(file, content);
+        }
     }
 
     const wrappedErrorContent = await fetchFile('lib/utils.ts');
@@ -126,56 +234,44 @@ async function main() {
     const loadSensitiveJsonContent = await fetchFile('bin/load-sensitive-json.ts');
     fs.writeFileSync('bin/load-sensitive-json.ts', loadSensitiveJsonContent);
 
-    const binFile = fs.readdirSync('bin').find(f => f.endsWith('.ts') && !f.includes('load-sensitive-json'));
-    if (binFile) {
-        let binContent = fs.readFileSync(`bin/${binFile}`, 'utf8');
+    let newBinContent = await fetchFile('bin/aws-cdk-js-dev-guide.ts');
 
-        // Add imports
-        const imports = [
-            `import { loadSensitiveJson } from './load-sensitive-json';`,
-            `import * as fs from 'fs';`,
-            `import * as path from 'path';`
-        ];
-        if (useCertStack) {
-            imports.push(`import { CertificateStack } from '../lib/certificate-stack';`);
-        }
+    // Replace stack import
+    newBinContent = newBinContent.replace(
+        /import\s+\{\s*AwsStack\s*\}\s+from\s+'\.\.\/lib\/aws-cdk-js-dev-guide-stack';/,
+        `import { ${stackClassName} } from '${stackImportPath}';`
+    );
 
-        binContent = imports.join('\n') + '\n' + binContent;
+    // Replace stack class usage
+    newBinContent = newBinContent.replace(/new\s+AwsStack\s*\(/g, `new ${stackClassName}(`);
 
-        // Replace instantiation
-        // e.g. my-project-stack
-        const classNameMatch = binContent.match(/new\s+(\w+)\s*\(/);
-        const className = classNameMatch ? classNameMatch[1] : 'MyStack';
+    // Replace stack name prefix
+    newBinContent = newBinContent.replace(/`AwsStack-/g, `\`${stackClassName}-`);
 
-        const replacement = `
-const config = loadSensitiveJson(path.join(__dirname, '../lib/stacks.json'));
-Object.keys(config).forEach(envName => {
-    const options = config[envName];
-    const env = { account: options.account, region: options.region };
+    if (!useCertStack) {
+        // Remove CertificateStack import
+        newBinContent = newBinContent.replace(/import\s+\{\s*CertificateStack\s*\}\s+from\s+'\.\.\/lib\/certificate-stack';\n/, '');
 
-    ${useCertStack ? `
-    const certStack = new CertificateStack(app, \`CertificateStack-\${envName}\`, {
-        env,
-        domainName: options.domainName,
-        subdomainNames: options.subdomainNames,
-        isNakedDomainTarget: options.isNakedDomainTarget
-    });
-    ` : ''}
+        // Remove CertificateStack logic block, identified by the comments // CERTIFICATE-STACK-START and // CERTIFICATE-STACK-END
+        newBinContent = newBinContent.replace(
+            /\s*\/\/ CERTIFICATE-STACK-START[\s\S]*?\/\/ CERTIFICATE-STACK-END\s*/,
+            '\n\n    '
+        );
 
-    new ${className}(app, \`${className}-\${envName}\`, {
-        env,
-        ...options,
-        ${useCertStack ? 'certificate: certStack.certificate,' : ''}
-        ${useCertStack ? 'hostedZone: certStack.hostedZone,' : ''}
-    }, options);
-});
-`;
-        // Remove original instantiation
-        binContent = binContent.replace(/new\s+\w+\s*\([^;]+;\s*/, '');
-        binContent += replacement;
-
-        fs.writeFileSync(`bin/${binFile}`, binContent);
+        // Remove the crossRegionReferences flag setting
+        newBinContent = newBinContent.replace(
+            /\s*\/\/ if the stack requires a certificate[\s\S]*?crossRegionReferences = true;\s*}/,
+            '\n\n    '
+        );
+    } else {
+        // replace if (stack.domainName && stack.resources.includes("static-website")) { with only a check for the domain name
+        newBinContent = newBinContent.replace(
+            /if\s*\(stack\.domainName\s.*/,
+            'if (stack.domainName) {'
+        );
     }
+
+    fs.writeFileSync(`bin/${binFile}`, newBinContent);
 
     console.log('Setting up layers...');
     fs.mkdirSync('layers/build', { recursive: true });
@@ -198,9 +294,16 @@ Object.keys(config).forEach(envName => {
     const handlerContent = await fetchFile('handlers/simple/index.mjs');
     fs.writeFileSync('handlers/simple/index.mjs', handlerContent);
 
+    console.log('Running npm install...');
+    // Ignore stdin so npm doesn't try to read from the curl pipe
+    execSync('npm install', { stdio: ['ignore', 'inherit', 'inherit'] });
+
     console.log('Done! Project initialized.');
-    console.log(`cd ${projectName}`);
-    console.log('npm install');
 }
 
-main().catch(console.error);
+main().catch(err => {
+    console.error(err);
+    process.exit(1);
+}).then(() => {
+    process.exit(0);
+});

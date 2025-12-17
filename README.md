@@ -2,6 +2,24 @@
 
 This project is a template that's intended to serve as a guide for working with CDK in TypeScript / Javascript.
 
+## Initializing a new project
+
+To initialize a new project using this template, call the `tools/init.js` script from outside of the current directory or run the following command:
+
+```bash
+curl https://raw.githubusercontent.com/therightstuff/aws-cdk-js-dev-guide/refs/heads/main/tools/init.js | node
+```
+
+This will prompt you for a project name (and whether or not you require a certificate stack for domain management) and then initialize a new CDK project accordingly, copying over the  modifications recommended by this repository.
+
+The only manual step required to be able to build, synthesize and deploy your new project is to copy the `.env.template` template file to `.env` and insert your AWS account number where specified.
+
+To compare your changes against the latest state of this repository, you can run:
+
+```bash
+./tools/diff.js -h
+```
+
 ## History
 
 This was initially an attempt to create a simple way to define, build, test and deploy AWS projects using CDK and SAM. In spite of my discovering that SAM is extremely limited and doesn't integrate well with CDK

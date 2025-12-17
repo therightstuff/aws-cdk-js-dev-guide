@@ -1,3 +1,6 @@
+#!/usr/bin/env node
+
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
@@ -77,40 +80,27 @@ async function main() {
 
             const localContent = fs.readFileSync(localPath, 'utf8');
 
-            // Normalize line endings
-            const normalizedLocal = localContent.replace(/\r\n/g, '\n');
-            const normalizedRemote = remoteContent.replace(/\r\n/g, '\n');
+            const localHash = execSync('git hash-object -w --stdin', { input: localContent }).toString().trim();
+            const remoteHash = execSync('git hash-object -w --stdin', { input: remoteContent }).toString().trim();
+            const diffContent = execSync(`git diff ${remoteHash} ${localHash} --word-diff`).toString();
 
-            if (normalizedLocal === normalizedRemote) {
+            if (diffContent.length == 0) {
                 console.log(`[MATCH] ${file}`);
             } else {
                 console.log(`[DIFF] ${file} (Content differs)`);
 
-                const diffContent = [];
-                const localLines = normalizedLocal.split('\n');
-                const remoteLines = normalizedRemote.split('\n');
-                const maxLines = Math.max(localLines.length, remoteLines.length);
-                for (let i = 0; i < maxLines; i++) {
-                    const localLine = localLines[i] || '';
-                    const remoteLine = remoteLines[i] || '';
-                    if (localLine !== remoteLine) {
-                        diffContent.push(`- ${localLine}`);
-                        diffContent.push(`+ ${remoteLine}`);
-                    }
-                }
-
                 if (outputMode === 'stdout') {
                     if (!quiet) {
-                        console.log(diffContent.join('\n'));
-                        console.log('');
+                        console.log(`git diff: \n${diffContent}`);
+                        console.log();
                     }
                 } else if (outputMode === 'multiple') {
                     const diffFilePath = path.resolve(process.cwd(), `diff-${path.basename(file)}.patch`);
-                    fs.writeFileSync(diffFilePath, diffContent.join('\n'), 'utf8');
+                    fs.writeFileSync(diffFilePath, `${diffContent}\n\n`, 'utf8');
                     console.log(`  Diff exported to: ${diffFilePath}`);
                 } else if (outputMode === 'single') {
                     allDiffs.push(`--- ${file} ---`);
-                    allDiffs.push(...diffContent);
+                    allDiffs.push(diffContent);
                     allDiffs.push('');
                 }
             }
@@ -128,7 +118,11 @@ async function main() {
 
     console.log('-------------------------');
     console.log('Done.');
-    process.exit(0);
 }
 
-main().catch(console.error);
+main().catch(err => {
+    console.error(err);
+    process.exit(1);
+}).then(() => {
+    process.exit(0);
+});

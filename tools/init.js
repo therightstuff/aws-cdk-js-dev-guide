@@ -96,7 +96,13 @@ async function main() {
 
     console.log('Copying tools...');
     fs.mkdirSync('tools', { recursive: true });
-    const tools = ['build-layers.js', 'package-upgrade.js', 'persistent-shell.js'];
+    const tools = [
+        'build-layers.js',
+        'diff.js',
+        'init.js',
+        'package-upgrade.js',
+        'persistent-shell.js'
+    ];
     for (const tool of tools) {
         const content = await fetchFile(`tools/${tool}`);
         fs.writeFileSync(`tools/${tool}`, content);

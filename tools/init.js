@@ -106,10 +106,17 @@ async function main() {
     for (const tool of tools) {
         const content = await fetchFile(`tools/${tool}`);
         fs.writeFileSync(`tools/${tool}`, content);
+        fs.chmodSync(`tools/${tool}`, 0o755);
     }
 
     console.log('Copying configurations...');
-    const configs = ['tsconfig.json', 'eslint.config.js', '.prettierrc', '.env.template'];
+    const configs = [
+        '.env.template',
+        '.gitignore',
+        '.prettierrc',
+        'eslint.config.js',
+        'tsconfig.json'
+    ];
     for (const config of configs) {
         try {
             const content = await fetchFile(config);

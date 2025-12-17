@@ -18,7 +18,10 @@ let stacks:any = loadSensitiveJson(path.resolve(__dirname, '../lib/stacks.json')
 
 for (let name in stacks) {
     let stack:any = stacks[name];
+    let crossRegionReferences = false;
 
+    // CERTIFICATE-STACK-START
+    // if the stack requires a certificate, create a certificate stack first
     if (stack.domainName && stack.resources.includes("static-website")) {
         let certificateStackName = `AwsStack-Cert-${name}`;
         let certificateStackInstance = new CertificateStack(
@@ -34,7 +37,10 @@ for (let name in stacks) {
         // inject the certificate and zone into the primary stack's custom options
         stack.zone = certificateStackInstance.zone;
         stack.certificate = certificateStackInstance.certificate;
+
+        crossRegionReferences = true;
     }
+    // CERTIFICATE-STACK-END
 
     let stackName = `AwsStack-${name}`;
     let stackProps: cdk.StackProps = {
@@ -43,7 +49,7 @@ for (let name in stacks) {
             "account": stack.account,
         } : undefined,
         // this is to enable access to the certificate stack resources
-        crossRegionReferences: true
+        crossRegionReferences: crossRegionReferences
     };
 
     let stackInstance = new AwsStack(

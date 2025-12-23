@@ -1,10 +1,10 @@
 import dotenv from "dotenv";
-import fs from 'fs';
+import fs from 'node:fs';
 dotenv.config();
 
 const getNextPlaceholder = (body: string) => {
-  let result = body.match(/{{([^}]+)}}/);
-  return result && result[1];
+  let result = /{{([^}]+)}}/.exec(body);
+  return result?.[1];
 };
 
 const loadSensitiveJson = (path: string) => {

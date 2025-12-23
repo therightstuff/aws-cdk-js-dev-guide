@@ -4,7 +4,7 @@
 
 ## Initializing a new project
 
-To initialize a new project using this template, call the `tools/init.js` script from outside of the current directory or run the following command:
+To initialize a new project using this template, call the [`tools/init.js`](tools/init.js) script from outside of the current directory or run the following command:
 
 ```bash
 curl https://raw.githubusercontent.com/therightstuff/aws-cdk-js-dev-guide/refs/heads/main/tools/init.js | node
@@ -62,6 +62,8 @@ To upgrade from CDK v1, switch to the [feature/v1-v2-migration branch](https://g
 
 The first step to creating a CDK project is to create a project folder and initialize it with `cdk init app` (eg. `cdk init app --language typescript`) - please note that a CDK project cannot be initialized if the project directory isn't empty. If you would like to use an existing project (like this one) as a template, bear in mind that you will have to rename the stack in multiple locations and it would probably be safer and easier to create a new project and copy and paste in the bits you need (estimated time: 20-30 minutes if you're not familiar with the project structure).
 
+For this reason I've created the [tools/init.js](tools/init.js) script to automate the process, see [Initializing a new project](#initializing-a-new-project) above.
+
 To be able to run the build scripts, execute the following command:
 
 ```bash
@@ -76,13 +78,17 @@ Copy the following as-is to your new project:
     |- `/load-sensitive-json.ts`
 |- `/lib`
     |- `stacks.json`
+    |- `utils.ts`
 |- `/tools`
     |- `build-layers.js`
+    |- `diff.js`
     |- `package-upgrade.js`
     |- `persistent-shell.js`
-|- `.eslint.config.js`
+    |- `utils.js`
+|- `.prettierrc`
 |- `.gitignore`
 |- `.npmignore`
+|- `eslint.config.js`
 |- `tsconfig.json`
 ```
 

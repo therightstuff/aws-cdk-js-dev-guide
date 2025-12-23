@@ -11,16 +11,17 @@ const repoBaseUrl = 'https://raw.githubusercontent.com/therightstuff/aws-cdk-js-
 const yesAnswers = new Set(['y', 'yes']);
 
 const filesToCheck = [
+    'bin/load-sensitive-json.ts',
+    'lib/certificate-stack.ts',
+    'lib/utils.ts',
     'tools/build-layers.js',
     'tools/diff.js',
     'tools/package-upgrade.js',
     'tools/persistent-shell.js',
-    'tsconfig.json',
-    'eslint.config.js',
+    'tools/utils.js',
     '.prettierrc',
-    'lib/certificate-stack.ts',
-    'lib/utils.ts',
-    'bin/load-sensitive-json.ts'
+    'eslint.config.js',
+    'tsconfig.json',
 ];
 
 function fetchFile(relativePath) {

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
-const https = require('https');
+const fs = require('node:fs');
+const path = require('node:path');
+const { execSync } = require('node:child_process');
+const https = require('node:https');
 
 const { askQuestion } = require('./utils');
 
@@ -57,9 +57,9 @@ async function main() {
     const tools = [
         'build-layers.js',
         'diff.js',
-        'init.js',
         'package-upgrade.js',
-        'persistent-shell.js'
+        'persistent-shell.js',
+        'utils.js',
     ];
     for (const tool of tools) {
         const content = await fetchFile(`tools/${tool}`);
@@ -123,7 +123,7 @@ async function main() {
 
         if (fs.existsSync('eslint.config.js')) {
             let eslintConfig = fs.readFileSync('eslint.config.js', 'utf8');
-            eslintConfig = eslintConfig.replace(/'static-website\/\*\*',?\s*/g, '');
+            eslintConfig = eslintConfig.replaceAll(/'static-website\/\*\*',?\s*/g, '');
             fs.writeFileSync('eslint.config.js', eslintConfig);
         }
     }
@@ -202,7 +202,7 @@ async function main() {
                     /import\s+\{\s*AwsStack\s*\}\s+from\s+"[^"]+";/,
                     `import { ${stackClassName} } from "${libImportPath}";`
                 );
-                content = content.replace(/AwsStack/g, stackClassName);
+                content = content.replaceAll('AwsStack', stackClassName);
             }
             fs.writeFileSync(file, content);
         }
@@ -224,12 +224,18 @@ async function main() {
     );
 
     // Replace stack class usage
-    newBinContent = newBinContent.replace(/new\s+AwsStack\s*\(/g, `new ${stackClassName}(`);
+    newBinContent = newBinContent.replaceAll(/new\s+AwsStack\s*\(/g, `new ${stackClassName}(`);
 
     // Replace stack name prefix
-    newBinContent = newBinContent.replace(/`AwsStack-/g, `\`${stackClassName}-`);
+    newBinContent = newBinContent.replaceAll('`AwsStack-', `\`${stackClassName}-`);
 
-    if (!useCertStack) {
+    if (useCertStack) {
+        // replace if (stack.domainName && stack.resources.includes("static-website")) { with only a check for the domain name
+        newBinContent = newBinContent.replace(
+            /if\s*\(stack\.domainName\s.*/,
+            'if (stack.domainName) {'
+        );
+    } else {
         // Remove CertificateStack import
         newBinContent = newBinContent.replace(/import\s+\{\s*CertificateStack\s*\}\s+from\s+'\.\.\/lib\/certificate-stack';\n/, '');
 
@@ -243,12 +249,6 @@ async function main() {
         newBinContent = newBinContent.replace(
             /\s*\/\/ if the stack requires a certificate[\s\S]*?crossRegionReferences = true;\s*}/,
             '\n\n    '
-        );
-    } else {
-        // replace if (stack.domainName && stack.resources.includes("static-website")) { with only a check for the domain name
-        newBinContent = newBinContent.replace(
-            /if\s*\(stack\.domainName\s.*/,
-            'if (stack.domainName) {'
         );
     }
 

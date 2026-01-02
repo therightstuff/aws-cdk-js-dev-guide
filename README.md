@@ -44,7 +44,12 @@ The only real way to test locally would be to recreate the invoked lambda's cont
 
 It is valuable and necessary to go through the following steps to familiarize yourself with the tools.
 
-- create a programmatic user in IAM with admin permissions
+- set up AWS cli tooling
+  - install and configure the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
+  - configure your AWS credentials
+    - EITHER set up SSO with amazon's identity center (recommended)
+    - OR create a programmatic user in IAM with admin permissions
+- install node.js (i recommend using [nvm](https://github.com/nvm-sh/nvm) to manage multiple versions)
 - if you're using [Visual Studio Code](https://code.visualstudio.com/) (recommended), [configure the AWS toolkit](https://docs.aws.amazon.com/toolkit-for-vscode/latest/userguide/setup-toolkit.html)
 - set up credentials with the profile id "default"
 - get the 12 digit account id from My Account in console

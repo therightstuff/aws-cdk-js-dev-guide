@@ -30,7 +30,7 @@
     "dotenv": "^17.2.3",
     "eslint": "^9.39.2",
     "fs-extra": "^11.3.3",
-    "globals": "^16.5.0",
+    "globals": "^17.0.0",
     "simple-recursive-checksum": "^0.0.15",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.2",

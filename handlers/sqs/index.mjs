@@ -22,7 +22,7 @@ let corsHeaders = {
 };
 
 export const publish = async (event) => {
-    let payload = null;
+    let payload;
     try {
         payload = JSON.parse(event.body);
     // eslint-disable-next-line no-unused-vars

@@ -18,7 +18,7 @@ let corsHeaders = {
 };
 
 export const handler = async (event) => {
-    let payload = null;
+    let payload;
     try {
         payload = JSON.parse(event.body);
     // eslint-disable-next-line no-unused-vars

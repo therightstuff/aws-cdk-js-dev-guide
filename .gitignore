@@ -17,3 +17,9 @@ layers/**/package-lock.json
 
 # Runtime context - DO NOT IGNORE THIS IN PRODUCTION REPOS!
 cdk.context.json
+
+# Jest coverage output
+coverage/
+
+# ai stuff
+meta/

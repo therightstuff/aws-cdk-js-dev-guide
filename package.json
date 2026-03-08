@@ -10,7 +10,8 @@
     "cdk": "cdk",
     "lint": "echo 'linting...' && eslint . --ignore-pattern .gitignore",
     "package-upgrade": "node tools/package-upgrade.js",
-    "synth": "npm run build && echo 'performing cdk synthesis...' && cdk synth -v"
+    "synth": "npm run build && echo 'performing cdk synthesis...' && cdk synth -v",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -24,13 +25,14 @@
   "homepage": "https://github.com/therightstuff/aws-cdk-js-dev-guide#readme",
   "dependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "25.3.3",
+    "@types/node": "25.3.5",
     "aws-cdk-lib": "^2.241.0",
     "constructs": "^10.5.1",
     "dotenv": "^17.3.1",
-    "eslint": "^10.0.2",
-    "fs-extra": "^11.3.3",
+    "eslint": "^10.0.3",
+    "fs-extra": "^11.3.4",
     "globals": "^17.4.0",
+    "jest": "^30.2.0",
     "simple-recursive-checksum": "^0.0.15",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.2",

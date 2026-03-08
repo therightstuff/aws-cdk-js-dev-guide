@@ -9,7 +9,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "pg": "^8.19.0",
+    "pg": "^8.20.0",
     "pg-hstore": "^2.3.4"
   }
 }

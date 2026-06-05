@@ -5,6 +5,7 @@ export const handler = async (event) => {
         let statusCode = (success ? 200 : 500)
         let returnObject = {
             "success": success,
+            "timestamp": new Date().toISOString(),
             "notice": `Please note that status code and "success" value are randomly determined`,
             "querystring": event.queryStringParameters
         };

@@ -25,7 +25,7 @@
   "homepage": "https://github.com/therightstuff/aws-cdk-js-dev-guide#readme",
   "dependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "26.1.2",
+    "@types/node": "26.2.0",
     "aws-cdk-lib": "^2.263.0",
     "constructs": "^10.8.0",
     "dotenv": "^17.4.2",

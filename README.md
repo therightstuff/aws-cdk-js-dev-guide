@@ -12,6 +12,8 @@ curl https://raw.githubusercontent.com/therightstuff/aws-cdk-js-dev-guide/refs/h
 
 This will prompt you for a project name (and whether or not you require a certificate stack for domain management) and then initialize a new CDK project accordingly, copying over the  modifications recommended by this repository.
 
+The initializer installs the template's dependencies and sets the generated project's `cdk.json` app command to `npx tsx bin/<generated-entry>.ts`, preserving its other CDK settings. See [TypeScript 7 and the CDK runner](#typescript-7-and-the-cdk-runner) for why this is required.
+
 The only manual step required to be able to build, synthesize and deploy your new project is to copy the `.env.template` template file to `.env` and insert your AWS account number where specified.
 
 To compare your changes against the latest state of this repository, you can run:
@@ -59,6 +61,14 @@ It is valuable and necessary to go through the following steps to familiarize yo
 
 CDK, like SAM, tends to be updated frequently - sometimes with breaking changes. Prior to committing changes, it's a good idea to ensure that you are using the latest versions and that everything is building and running correctly.
 
+#### TypeScript 7 and the CDK runner
+
+Upgrading from TypeScript 6.0.3 to 7.0.2 breaks CDK startup with `ts-node` 10.9.2: it fails with `Cannot read properties of undefined (reading 'fileExists')` before the application runs. In TypeScript 7.0.2, `require('typescript')` exports version information without the compiler API (`ts.sys`) that `ts-node` expects. This combination is also reported in [ts-node issue #2174](https://github.com/TypeStrong/ts-node/issues/2174).
+
+This template keeps TypeScript 7 and replaces `ts-node` with `tsx`, which uses esbuild to execute TypeScript without that compiler API. Both the dependency and the `cdk.json` app command must change; copying only `package.json` leaves projects trying to launch the old runner. `tools/init.js` applies both changes to new projects.
+
+`tsx` does not type-check. Keep `npm run build` as the compiler check (`tsc`); `npm run synth` already runs the build before synthesis. Run the build before invoking CDK directly, including `cdk deploy`, because direct CDK commands do not run the build script.
+
 #### Upgrading from CDK v1
 
 To upgrade from CDK v1, switch to the [feature/v1-v2-migration branch](https://github.com/therightstuff/aws-cdk-js-dev-guide/tree/feature/v1-v2-migration) which I will leave in place for you to be able to review the changes.
@@ -98,6 +108,15 @@ Copy the following as-is to your new project:
 ```
 
 Additionally, you will need to copy the npm script definitions from `package.json`, the `bin/aws-cdk-js-dev-guide.ts` file (with the stack name modified to match your new project), and modify the signature of `lib/aws-cdk-js-dev-guide-stack.ts` to accept custom options.
+
+For manual setup or an existing template-based project, replace the TypeScript runner:
+
+```bash
+npm uninstall ts-node
+npm install tsx@^4.23.15
+```
+
+In `cdk.json`, set `app` to `npx tsx bin/<your-entry-file>.ts` (for example, `npx tsx bin/my-project.ts`). Preserve the other settings and remove any `--prefer-ts-exts` option from the old command. Run `npm run build` and `npm run synth` to check the migration, and commit the updated `package.json`, `package-lock.json`, and `cdk.json` together. See [TypeScript 7 and the CDK runner](#typescript-7-and-the-cdk-runner) for the compatibility rationale.
 
 ### CDK Runtime Context
 

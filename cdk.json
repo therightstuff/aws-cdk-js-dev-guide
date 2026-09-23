@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node bin/aws-cdk-js-dev-guide.ts",
+  "app": "npx tsx bin/aws-cdk-js-dev-guide.ts",
   "context": {
     "aws-cdk:enableDiffNoFail": "true",
     "@aws-cdk/aws-signer:signingProfileNamePassedToCfn": true,

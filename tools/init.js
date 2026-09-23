@@ -175,6 +175,12 @@ async function main() {
         throw new Error('No valid bin file found.');
     }
 
+    console.log('Updating CDK app command...');
+    const cdkConfig = JSON.parse(fs.readFileSync('cdk.json', 'utf8'));
+    // Keep the generated CDK settings, but replace ts-node for TypeScript 7 compatibility.
+    cdkConfig.app = `npx tsx bin/${binFile}`;
+    fs.writeFileSync('cdk.json', JSON.stringify(cdkConfig, null, 2) + '\n');
+
     if (useCertStack) {
         const certStackContent = await fetchFile('lib/certificate-stack.ts');
         fs.writeFileSync('lib/certificate-stack.ts', certStackContent);

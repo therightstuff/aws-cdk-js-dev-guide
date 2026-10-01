@@ -4,14 +4,36 @@ import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 import { EventEmitter } from 'node:events';
+import { spawnSync } from 'node:child_process';
 
 const initSource = fs.readFileSync(new URL('../../tools/init.js', import.meta.url), 'utf8');
 
 describe('template initialization', () => {
+    it('starts from a standalone downloaded file in an empty directory', () => {
+        const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), 'cdk-init-standalone-'));
+        try {
+            const script = path.join(sandbox, 'init.js');
+            fs.writeFileSync(script, initSource);
+            const result = spawnSync(process.execPath, [script], {
+                cwd: sandbox,
+                input: '\n',
+                encoding: 'utf8',
+                detached: true,
+                timeout: 5000,
+            });
+            expect(result.error).toBeUndefined();
+            expect(result.status).toBe(1);
+            expect(result.stdout).toContain('Enter project name:');
+            expect(result.stderr).toContain('Project name is required.');
+        } finally {
+            fs.rmSync(sandbox, { recursive: true, force: true });
+        }
+    });
+
     it.each([
-        ['plain-project', 'n', 'plain-project.ts'],
-        ['certificate-project', 'yes', 'certificate-entry.ts'],
-    ])('configures tsx for %s and preserves CDK settings', async (projectName, certAnswer, binFile) => {
+        ['plain-project', 'n', 'plain-project.ts', true],
+        ['certificate-project', 'yes', 'certificate-entry.ts', false],
+    ])('configures tsx for %s and preserves CDK settings', async (projectName, certAnswer, binFile, isTTY) => {
         const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), 'cdk-init-test-'));
         let cwd = sandbox;
         const scopedFs = Object.fromEntries([
@@ -54,11 +76,24 @@ describe('template initialization', () => {
             }
         });
         const answers = [projectName, certAnswer];
+        const stdin = { isTTY };
+        const terminal = { destroy: jest.fn() };
+        scopedFs.openSync = jest.fn(() => 42);
+        scopedFs.createReadStream = jest.fn(() => terminal);
+        const close = jest.fn();
         const modules = {
             'node:fs': scopedFs,
             'node:path': path,
             'node:child_process': { execSync },
-            './utils': { askQuestion: async () => answers.shift() },
+            'node:readline': {
+                createInterface({ input }) {
+                    expect(input).toBe(isTTY ? stdin : terminal);
+                    return {
+                        question(query, callback) { queueMicrotask(() => callback(answers.shift())); },
+                        close,
+                    };
+                },
+            },
             'node:https': {
                 get(url, callback) {
                     const relativePath = new URL(url).pathname.split('/main/')[1];
@@ -82,11 +117,16 @@ describe('template initialization', () => {
                     if (!(name in modules)) throw new Error(`Unexpected module: ${name}`);
                     return modules[name];
                 },
-                process: { cwd: () => cwd, chdir: dir => { cwd = dir; }, exit },
+                process: { cwd: () => cwd, chdir: dir => { cwd = dir; }, exit, stdin, platform: 'darwin' },
                 console: { log() {}, error: error => errors.push(error) },
             });
             expect(errors).toEqual([]);
             expect(exit.mock.calls).toEqual([[0]]);
+            expect(close).toHaveBeenCalledTimes(2);
+            if (!isTTY) {
+                expect(scopedFs.openSync).toHaveBeenCalledWith('/dev/tty', 'r');
+                expect(terminal.destroy).toHaveBeenCalledTimes(2);
+            }
             expect(execSync).toHaveBeenCalledWith('npm install', expect.any(Object));
             const generatedPackage = JSON.parse(scopedFs.readFileSync('package.json', 'utf8'));
             expect(generatedPackage.dependencies).toEqual(templatePackage.dependencies);

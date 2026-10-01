@@ -5,9 +5,28 @@ const path = require('node:path');
 const { execSync } = require('node:child_process');
 const https = require('node:https');
 
-const { askQuestion } = require('./utils');
+const readline = require('node:readline');
 
 const repoBaseUrl = 'https://raw.githubusercontent.com/therightstuff/aws-cdk-js-dev-guide/main/';
+
+// Keep prompts self-contained: curl | node downloads only this file.
+function askQuestion(query) {
+    let input = process.stdin;
+    if (!input.isTTY && process.platform !== 'win32') {
+        try {
+            input = fs.createReadStream(null, { fd: fs.openSync('/dev/tty', 'r') });
+        } catch {
+            // Allow redirected answers when no controlling terminal is available.
+        }
+    }
+
+    const rl = readline.createInterface({ input, output: process.stdout });
+    return new Promise(resolve => rl.question(query, answer => {
+        rl.close();
+        if (input !== process.stdin) input.destroy();
+        resolve(answer);
+    }));
+}
 
 function fetchFile(relativePath) {
     return new Promise((resolve, reject) => {

@@ -1,6 +1,6 @@
 import { Duration, RemovalPolicy, StackProps, aws_logs as logs } from 'aws-cdk-lib';
 import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
-import { InstanceClass, InstanceSize, InstanceType, Peer, Port, SubnetType } from 'aws-cdk-lib/aws-ec2';
+import { InstanceClass, InstanceSize, InstanceType, SubnetType } from 'aws-cdk-lib/aws-ec2';
 import { Architecture, Code, Function, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Credentials, DatabaseInstance, DatabaseInstanceEngine, PostgresEngineVersion } from 'aws-cdk-lib/aws-rds';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
@@ -12,22 +12,16 @@ const POSTGRES_USERNAME = 'postgres';
 
 export class RdsDatabase {
     constructor(stack: AwsStack, id: string, props?: StackProps, customOptions?: any) {
-        stack.securityGroup.addIngressRule(
-            Peer.ipv4(stack.vpc.vpcCidrBlock),
-            Port.tcp(POSTGRES_PORT),
-            'allow postgres access from vpc'
-        );
-
         // RDS Postgres instance
         const postgresConfig:any = {
             vpc: stack.vpc,
             vpcSubnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS, },
-            securityGroup: stack.securityGroup,
+            storageEncrypted: true,
             port: POSTGRES_PORT,
             databaseName: POSTGRES_DATABASE,
             backupRetention: Duration.days(0), // no backups, not for production use!
             deletionProtection: false, // no deletion protection, not for production use!
-            RemovalPolicy: RemovalPolicy.DESTROY, // easy removal for cost-saving, not for production use!
+            removalPolicy: RemovalPolicy.SNAPSHOT, // preserve the existing default on deletion or replacement
             deleteAutomatedBackups: true, // also not for production use!
         };
 
@@ -60,9 +54,6 @@ export class RdsDatabase {
 
         // Create the database instance
         const dbInstance = new DatabaseInstance(stack, `postgres-instance`, postgresConfig);
-        // Allow access from anywhere with the given port. This is fine for a simple test setup,
-        // but you should restrict access for more long-lived resources.
-        dbInstance.connections.allowFromAnyIpv4(Port.tcp(POSTGRES_PORT));
 
         // Create a Lambda layer that contains the sequelize and pg libraries.
         // You'll need pg pg-hstore @sequelize/core and sequelize
@@ -106,6 +97,8 @@ export class RdsDatabase {
             }),
             timeout: Duration.seconds(10),
         });
+
+        dbInstance.connections.allowDefaultPortFrom(postgresFunction, 'Allow PostgreSQL from the Lambda security group');
 
         // API Gateway integration to trigger the function
         const rdsApi = new RestApi(stack, `rds-api`, {

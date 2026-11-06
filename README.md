@@ -33,6 +33,8 @@ To compare your changes against the latest state of this repository, you can run
 - `cdk diff`                compare deployed stack with current state
 - `tools/diff.js`          compare your project files against the latest version of this repository
 
+After `cdk deploy` completes, its `Outputs` section includes the API Gateway endpoints and, when `static-website` is enabled, the CloudFront website URL, each configured website domain, their `/api/` proxy base URLs, and the direct site API `/api` endpoint. The naked domain is included only when `isNakedDomainTarget` is enabled. These outputs can also be saved with `cdk deploy --outputs-file outputs.json`.
+
 ## History
 
 This was initially an attempt to create a simple way to define, build, test and deploy AWS projects using CDK and SAM. In spite of my discovering that SAM is extremely limited and doesn't integrate well with CDK
@@ -178,7 +180,7 @@ Lambda         | Handler | Resource Definition |
 `simple`       | [handler](handlers/simple/index.mjs) | [resource definitions](lib/simple-function.ts) |
 `layer`        | [node handler](handlers/layer/index.mjs), [python handler](handlers/python/main.py) | [resource definitions](lib/layer-functions.ts) |
 `dynamodb`     | [handlers](handlers/dynamodb/) | [resource definitions](lib/dynamodb.ts) |
-`postgres rds` | [handler](handlers/postgres/index.mjs) | [resource definitions](lib/rds-database.ts) |
+`postgres rds` | [handler](handlers/postgres/index.mjs) | [resource definitions](lib/rds-database.ts), [security and existing databases](troubleshooting/rds-security.md) |
 `scheduled`    | [handler](handlers/scheduled/index.mjs) | [resource definitions](lib/scheduled-function.ts) |
 `sqs`          | [handlers](handlers/sqs/) | [resource definitions](lib/sqs.ts) |
 
@@ -298,6 +300,8 @@ NOTE: This project defines an origin per stack in the `lib/stacks.json` file, wh
 For more details see [the API Gateway library documentation](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_apigateway-readme.html), and [the CORS documentation](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_apigateway.Cors.html) in particular.
 
 #### Domains and Static Websites
+
+New static website buckets use CloudFormation-generated names; the public domain is configured on CloudFront and DNS independently. When adapting this example to an already deployed website, preserve its existing bucket name unless you have planned a bucket replacement and data migration.
 
 ##### Hosted Zone Management
 

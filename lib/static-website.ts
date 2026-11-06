@@ -1,4 +1,4 @@
-import { RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
+import { CfnOutput, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
 import { RestApi } from "aws-cdk-lib/aws-apigateway";
 import {
     AccessLevel,
@@ -38,7 +38,6 @@ export class StaticWebsite {
 
         // the site bucket for the static website
         const siteBucket = new Bucket(stack, "static-website", {
-            bucketName: domainName,
             encryption: BucketEncryption.S3_MANAGED,
             publicReadAccess: false,
             removalPolicy: RemovalPolicy.DESTROY, // NOT recommended for production code
@@ -57,6 +56,11 @@ export class StaticWebsite {
         const siteApiRoot = siteApi.root.addResource("api");
         // a dummy method, as CDK will not synthesize without any methods
         const siteApiGet = siteApiRoot.addMethod("GET");
+
+        new CfnOutput(stack, "SiteApiUrl", {
+            value: siteApi.urlForPath("/api"),
+            description: "Direct website API endpoint",
+        });
 
         // NOTE: it amazes me that manually reconstructing this url is required.
         const apiOriginName = `${siteApi.restApiId}.execute-api.${stack.region}.amazonaws.com`;
@@ -146,6 +150,22 @@ export class StaticWebsite {
             defaultRootObject: "index.html",
             errorResponses: regularErrorResponses,
         });
+
+        const websiteDomains = [
+            distribution.distributionDomainName,
+            ...(isNakedDomainTarget ? [domainName] : []),
+            ...subdomainNames,
+        ];
+        for (const [index, websiteDomain] of websiteDomains.entries()) {
+            new CfnOutput(stack, `WebsiteUrl${index}`, {
+                value: `https://${websiteDomain}/`,
+                description: "Static website URL",
+            });
+            new CfnOutput(stack, `WebsiteApiUrl${index}`, {
+                value: `https://${websiteDomain}/api/`,
+                description: "Website API proxy base URL (api/*)",
+            });
+        }
 
         // Route53 alias record for the naked domain's CloudFront distribution
         // Leave this out if you're only deploying to a subdomain / subdomains

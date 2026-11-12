@@ -28,7 +28,7 @@
     "@types/node": "26.6.6",
     "aws-cdk-lib": "^2.275.0",
     "constructs": "^10.8.1",
-    "dotenv": "^18.0.9",
+    "dotenv": "^18.0.10",
     "eslint": "^10.14.0",
     "fs-extra": "^11.4.1",
     "globals": "^17.14.0",
